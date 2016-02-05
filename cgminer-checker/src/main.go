@@ -2,28 +2,50 @@ package main
 
 import (
 	"github.com/Elbandi/go-cgminer-api"
-	"lld"
-	"log"
+	"errors"
 	"flag"
 	"fmt"
+	"lld"
+	"log"
+	"net"
 	"os"
 	"strconv"
-	"errors"
+	"strings"
+	"time"
+)
+
+const (
+	localAddr = "127.0.0.1"
+	mCastPort = 4028
+	mCastReport = 4027
+	maxDatagramSize = 8192
+)
+
+var (
+	mCastAddr = &net.UDPAddr{
+		//	IP:   net.IPv4(127, 0, 0, 1),
+		IP:   net.IPv4(224, 0, 0, 75),
+		Port: mCastPort,
+	}
+	listenAddr = &net.UDPAddr{
+		IP:   net.IPv4(0, 0, 0, 0),
+		Port: mCastReport,
+	}
 )
 
 // var omitNewline = flag.Bool("n", false, "don't print final newline")
 
 func QueryDevice(request []string) (*cgminer.Devs, error) {
-	// parse first param as float64
-	port, err := strconv.ParseInt(request[1], 10, 64)
+	// parse first param as int64
+	port, err := strconv.ParseInt(request[0], 10, 64)
 	if err != nil {
 		return nil, errors.New("Invalid port format")
 	}
-	devid, err := strconv.ParseInt(request[2], 10, 64)
+	devid, err := strconv.ParseInt(request[1], 10, 64)
 	if err != nil {
 		return nil, errors.New("Invalid deviceid format")
 	}
-	miner := cgminer.New(request[0], port)
+	miner := cgminer.New(localAddr, port)
 	devices, err := miner.Devs()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to connect to CGMiner: %s", err.Error())
@@ -42,26 +64,74 @@ func QueryDevice(request []string) (*cgminer.Devs, error) {
 	return &dev, nil
 }
 
+
+func sendDiscoveryMsg(port int) {
+	time.Sleep(100 * time.Millisecond)
+	c, err := net.DialUDP("udp", nil, mCastAddr)
+	defer c.Close()
+	if err != nil {
+		return
+	}
+	msg := fmt.Sprintf("cgminer-FTW-%d", port)
+	c.Write([]byte(msg))
+}
+
+// DiscoverMiner is a DiscoveryItemHandlerFunc for key `cgminer.discovery` which returns JSON
+// encoded discovery data for all running cgminer
+func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
+	// init discovery data
+	d := make(lld.DiscoveryData, 0)
+
+	go sendDiscoveryMsg(mCastReport)
+	l, err := net.ListenUDP("udp", listenAddr)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to listen on %s: %s", err.Error())
+	}
+	l.SetReadBuffer(maxDatagramSize)
+	l.SetReadDeadline(time.Now().Add(2 * time.Second))
+	for {
+		b := make([]byte, maxDatagramSize)
+		n, _, err := l.ReadFromUDP(b)
+		if err != nil {
+			break
+		}
+		msg := strings.Split(string(b[:n]), "-")
+		if len(msg) < 3 {
+			continue
+		}
+		port, err := strconv.ParseInt(msg[2], 10, 64)
+		if err == nil {
+			item := make(lld.DiscoveryItem, 0)
+			item["PORT"] = strconv.FormatInt(port, 10)
+			// item["NAME"] = fmt.Sprintf("%s %d", dev.Name, dev.ID)
+			d = append(d, item)
+		}
+	}
+
+	return d, nil
+}
+
 // DiscoverDevs is a DiscoveryItemHandlerFunc for key `cgminer.dev.discovery` which returns JSON
 // encoded discovery data for all devices from cgminer
 func DiscoverDevs(request []string) (lld.DiscoveryData, error) {
-	// parse first param as float64
-	port, err := strconv.ParseInt(request[1], 10, 64)
+	// parse first param as int64
+	port, err := strconv.ParseInt(request[0], 10, 64)
 	if err != nil {
 		return nil, errors.New("Invalid port format")
 	}
 	// init discovery data
 	d := make(lld.DiscoveryData, 0)
 
-	miner := cgminer.New(request[0], port)
+	miner := cgminer.New(localAddr, port)
 	devices, err := miner.Devs()
 	if err != nil {
 		return nil, err
 	}
 
-	item := make(lld.DiscoveryItem, 0)
 	for _, dev := range *devices {
-		item["ID"] = strconv.FormatInt(dev.ID, 10)
+		item := make(lld.DiscoveryItem, 0)
+		item["PORT"] = strconv.FormatInt(port, 10)
+		item["DEVID"] = strconv.FormatInt(dev.ID, 10)
 		item["NAME"] = fmt.Sprintf("%s %d", dev.Name, dev.ID)
 		d = append(d, item)
 	}
@@ -144,82 +214,93 @@ func main() {
 	switch flag.Arg(0) {
 	case "discovery":
 		switch flag.NArg() {
-		case 3:
+		case 1:
+			if v, err := DiscoverMiner(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v.Json())
+			}
+		default:
+			log.Fatalf("Usage: %s discovery", os.Args[0])
+		}
+	case "dev.discovery":
+		switch flag.NArg() {
+		case 2:
 			if v, err := DiscoverDevs(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
 				fmt.Print(v.Json())
 			}
 		default:
-			log.Fatalf("Usage: %s discovery IP PORT", os.Args[0])
+			log.Fatalf("Usage: %s dev.discovery PORT", os.Args[0])
 		}
 	case "accept_shares":
 		switch flag.NArg() {
-		case 4:
+		case 3:
 			if v, err := AcceptedShares(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
 				fmt.Print(v)
 			}
 		default:
-			log.Fatalf("Usage: %s accept_shares IP PORT DEVICEID", os.Args[0])
+			log.Fatalf("Usage: %s accept_shares PORT DEVICEID", os.Args[0])
 		}
 	case "hwerrors":
 		switch flag.NArg() {
-		case 4:
+		case 3:
 			if v, err := HardwareErrors(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
 				fmt.Print(v)
 			}
 		default:
-			log.Fatalf("Usage: %s hwerrors IP PORT DEVICEID", os.Args[0])
+			log.Fatalf("Usage: %s hwerrors PORT DEVICEID", os.Args[0])
 		}
 	case "hashrate":
 		switch flag.NArg() {
-		case 4:
+		case 3:
 			if v, err := Rate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
 				fmt.Print(v)
 			}
 		default:
-			log.Fatalf("Usage: %s hashrate IP PORT DEVICEID", os.Args[0])
+			log.Fatalf("Usage: %s hashrate PORT DEVICEID", os.Args[0])
 		}
 	case "hashrate_av":
 		switch flag.NArg() {
-		case 4:
+		case 3:
 			if v, err := RateAv(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
 				fmt.Print(v)
 			}
 		default:
-			log.Fatalf("Usage: %s hashrate_av IP PORT DEVICEID", os.Args[0])
+			log.Fatalf("Usage: %s hashrate_av PORT DEVICEID", os.Args[0])
 		}
 	case "rejected":
 		switch flag.NArg() {
-		case 4:
+		case 3:
 			if v, err := Rejected(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
 				fmt.Print(v)
 			}
 		default:
-			log.Fatalf("Usage: %s rejected IP PORT DEVICEID", os.Args[0])
+			log.Fatalf("Usage: %s rejected PORT DEVICEID", os.Args[0])
 		}
 	case "temperature":
 		switch flag.NArg() {
-		case 4:
+		case 3:
 			if v, err := Temperature(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
 				fmt.Print(v)
 			}
 		default:
-			log.Fatalf("Usage: %s temperature IP PORT DEVICEID", os.Args[0])
+			log.Fatalf("Usage: %s temperature PORT DEVICEID", os.Args[0])
 		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'accept_shares', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'dev.discovery', 'accept_shares', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
 	}
 }
