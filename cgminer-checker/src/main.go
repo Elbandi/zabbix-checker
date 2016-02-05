@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Elbandi/go-cgminer-api"
+	"github.com/stefantalpalaru/pool"
 	"errors"
 	"flag"
 	"fmt"
@@ -82,13 +83,16 @@ func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
 	// init discovery data
 	d := make(lld.DiscoveryData, 0)
 
+	discoverypool := pool.New(4)
+	discoverypool.Run()
+
 	go sendDiscoveryMsg(mCastReport)
 	l, err := net.ListenUDP("udp", listenAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to listen on %s: %s", err.Error())
 	}
 	l.SetReadBuffer(maxDatagramSize)
-	l.SetReadDeadline(time.Now().Add(2 * time.Second))
+	l.SetReadDeadline(time.Now().Add(1 * time.Second))
 	for {
 		b := make([]byte, maxDatagramSize)
 		n, _, err := l.ReadFromUDP(b)
@@ -101,44 +105,52 @@ func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
 		}
 		port, err := strconv.ParseInt(msg[2], 10, 64)
 		if err == nil {
-			item := make(lld.DiscoveryItem, 0)
-			item["PORT"] = strconv.FormatInt(port, 10)
-			// item["NAME"] = fmt.Sprintf("%s %d", dev.Name, dev.ID)
-			d = append(d, item)
+			discoverypool.Add(DiscoverDevs, port)
+		}
+	}
+
+	//  status := mypool.Status()
+	//  log.Println(status.Submitted, "submitted jobs,", status.Running, "running,", status.Completed, "completed.")
+	discoverypool.Wait()
+	completed_jobs := discoverypool.Results()
+	for _, job := range completed_jobs {
+		if job.Result == nil {
+			// TODO: handle this
+			log.Println("got error:", job.Err)
+		} else {
+			item := job.Result.(lld.DiscoveryData)
+			if item != nil {
+				d = append(d, item...)
+			}
 		}
 	}
 
 	return d, nil
 }
 
-// DiscoverDevs is a DiscoveryItemHandlerFunc for key `cgminer.dev.discovery` which returns JSON
-// encoded discovery data for all devices from cgminer
-func DiscoverDevs(request []string) (lld.DiscoveryData, error) {
-	// parse first param as int64
-	port, err := strconv.ParseInt(request[0], 10, 64)
-	if err != nil {
-		return nil, errors.New("Invalid port format")
-	}
+func DiscoverDevs(args ...interface{}) interface{} {
+	port := args[0].(int64)
+
 	// init discovery data
 	d := make(lld.DiscoveryData, 0)
 
 	miner := cgminer.New(localAddr, port)
 	devices, err := miner.Devs()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	for _, dev := range *devices {
 		item := make(lld.DiscoveryItem, 0)
 		item["PORT"] = strconv.FormatInt(port, 10)
 		item["DEVID"] = strconv.FormatInt(dev.ID, 10)
-		item["NAME"] = fmt.Sprintf("%s %d", dev.Name, dev.ID)
+		item["NAME"] = dev.Name
+		//  item["NAME"] = fmt.Sprintf("%s %d", dev.Name, dev.ID)
 		d = append(d, item)
 	}
 
-	return d, nil
+	return d
 }
-
 
 // AcceptedShares is a DoubleItemHandlerFunc for key `cgminer.accept_shares` which returns the accepted shares
 // counter.
@@ -223,17 +235,6 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s discovery", os.Args[0])
 		}
-	case "dev.discovery":
-		switch flag.NArg() {
-		case 2:
-			if v, err := DiscoverDevs(flag.Args()[1:]); err != nil {
-				log.Fatalf("Error: %s", err.Error())
-			} else {
-				fmt.Print(v.Json())
-			}
-		default:
-			log.Fatalf("Usage: %s dev.discovery PORT", os.Args[0])
-		}
 	case "accept_shares":
 		switch flag.NArg() {
 		case 3:
@@ -301,6 +302,6 @@ func main() {
 			log.Fatalf("Usage: %s temperature PORT DEVICEID", os.Args[0])
 		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'dev.discovery', 'accept_shares', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'accept_shares', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
 	}
 }
