@@ -75,6 +75,8 @@ func sendDiscoveryMsg(port int) {
 	}
 	msg := fmt.Sprintf("cgminer-FTW-%d", port)
 	c.Write([]byte(msg))
+	msg = fmt.Sprintf("sgminer-FTW-%d", port)
+	c.Write([]byte(msg))
 }
 
 // DiscoverMiner is a DiscoveryItemHandlerFunc for key `cgminer.discovery` which returns JSON
@@ -92,7 +94,7 @@ func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
 		return nil, fmt.Errorf("Unable to listen on %s: %s", err.Error())
 	}
 	l.SetReadBuffer(maxDatagramSize)
-	l.SetReadDeadline(time.Now().Add(1 * time.Second))
+	l.SetReadDeadline(time.Now().Add(2 * time.Second))
 	for {
 		b := make([]byte, maxDatagramSize)
 		n, _, err := l.ReadFromUDP(b)
