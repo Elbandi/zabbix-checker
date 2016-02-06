@@ -83,7 +83,7 @@ func QuerySpeed(request []string) (float64, error) {
 	}
 	var speedpercent float64
 	if speedpercent = 0.00; rentals.HashRate.HashRate5m > 0 {
-		speedpercent = float64(rentals.HashRate.Advertised) / rentals.HashRate.HashRate5m
+		speedpercent = 100.0 * float64(rentals.HashRate.Advertised) / rentals.HashRate.HashRate5m
 	}
 	//	fmt.Printf("%T %+v\n", rentals, rentals)
 	return speedpercent, nil
