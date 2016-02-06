@@ -32,6 +32,26 @@ func DiscoverRentals(request []string) (lld.DiscoveryData, error) {
 }
 
 
+// QueryRigStatus is a StringItemHandlerFunc for key `mrr.rigstatus` which returns the status
+// of rig for a rentals.
+func QueryRigStatus(request []string) (string, error) {
+	// parse first param as int64
+	rentalid, err := strconv.ParseInt(request[2], 10, 64)
+	if err != nil {
+		return "na", errors.New("Invalid rentalid format")
+	}
+	client := miningrigrentals.New(request[0], request[1])
+	rentals, err := client.GetRentalDetails(rentalid)
+	if err != nil {
+		return "na", err
+	}
+	rig, err := client.GetRigDetails(int64(rentals.RigId))
+	if err != nil {
+		return "na", err
+	}
+	return rig.Status, nil
+}
+
 // QueryStatus is a StringItemHandlerFunc for key `mrr.status` which returns the status
 // of a rentals.
 func QueryStatus(request []string) (string, error) {
@@ -85,6 +105,17 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s discovery KEY SECRET", os.Args[0])
 		}
+	case "rigstatus":
+		switch flag.NArg() {
+		case 4:
+			if v, err := QueryRigStatus(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s rigstatus KEY SECRET RENTALID", os.Args[0])
+		}
 	case "status":
 		switch flag.NArg() {
 		case 4:
@@ -108,6 +139,6 @@ func main() {
 			log.Fatalf("Usage: %s speedpercent KEY SECRET RENTALID", os.Args[0])
 		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'status' or 'speedpercent'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'status' , 'rigstatus' or 'speedpercent'.")
 	}
 }
