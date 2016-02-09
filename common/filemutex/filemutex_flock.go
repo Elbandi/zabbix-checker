@@ -11,6 +11,10 @@ import (
 	"syscall"
 )
 
+const (
+	mkdirPerm            = 0750
+)
+
 // FileMutex is similar to sync.RWMutex, but also synchronizes across processes.
 // This implementation is based on flock syscall.
 type FileMutex struct {
