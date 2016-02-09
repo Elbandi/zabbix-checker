@@ -3,12 +3,14 @@ package main
 import (
 	"github.com/bitbandi/go-miningrigrentals-api"
 	"github.com/Elbandi/zabbix-checker/common/lld"
+	"github.com/Elbandi/zabbix-checker/common/filemutex"
 	"flag"
 	"log"
 	"os"
 	"fmt"
 	"strconv"
 	"errors"
+	"path/filepath"
 )
 
 // DiscoverRentals is a DiscoveryItemHandlerFunc for key `mrr.discovery` which returns JSON
@@ -16,6 +18,9 @@ import (
 func DiscoverRentals(request []string) (lld.DiscoveryData, error) {
 	// init discovery data
 	d := make(lld.DiscoveryData, 0)
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "mrr-" + request[0]))
+	lock.Lock()
+	defer lock.Unlock()
 	client := miningrigrentals.New(request[0], request[1])
 	rentals, err := client.ListMyRentals()
 	if err != nil {
@@ -40,6 +45,9 @@ func QueryRigStatus(request []string) (string, error) {
 	if err != nil {
 		return "na", errors.New("Invalid rentalid format")
 	}
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "mrr-" + request[0]))
+	lock.Lock()
+	defer lock.Unlock()
 	client := miningrigrentals.New(request[0], request[1])
 	rentals, err := client.GetRentalDetails(rentalid)
 	if err != nil {
@@ -60,6 +68,9 @@ func QueryStatus(request []string) (string, error) {
 	if err != nil {
 		return "na", errors.New("Invalid rentalid format")
 	}
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "mrr-" + request[0]))
+	lock.Lock()
+	defer lock.Unlock()
 	client := miningrigrentals.New(request[0], request[1])
 	rentals, err := client.GetRentalDetails(rentalid)
 	if err != nil {
@@ -76,6 +87,9 @@ func QuerySpeed(request []string) (float64, error) {
 	if err != nil {
 		return 0.00, errors.New("Invalid rentalid format")
 	}
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "mrr-" + request[0]))
+	lock.Lock()
+	defer lock.Unlock()
 	client := miningrigrentals.New(request[0], request[1])
 	rentals, err := client.GetRentalDetails(rentalid)
 	if err != nil {
