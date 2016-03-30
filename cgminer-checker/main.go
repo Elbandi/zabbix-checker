@@ -174,6 +174,15 @@ func HardwareErrors(request []string) (uint64, error) {
 	return uint64(dev.HardwareErrors), nil
 }
 
+// Frequency is a DoubleItemHandlerFunc for key `cgminer.frequency` which returns the device frequency.
+func Frequency(request []string) (float64, error) {
+	dev, err := QueryDevice(request)
+	if err != nil {
+		return 0.00, err
+	}
+	return dev.Frequency, nil
+}
+
 // Rate is a DoubleItemHandlerFunc for key `cgminer.hashrate` which returns
 // the device 5 sec hashrate.
 func Rate(request []string) (float64, error) {
@@ -248,6 +257,17 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s accept_shares PORT DEVICEID", os.Args[0])
 		}
+	case "frequency":
+		switch flag.NArg() {
+		case 3:
+			if v, err := Frequency(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s frequency PORT DEVICEID", os.Args[0])
+		}
 	case "hwerrors":
 		switch flag.NArg() {
 		case 3:
@@ -304,6 +324,6 @@ func main() {
 			log.Fatalf("Usage: %s temperature PORT DEVICEID", os.Args[0])
 		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'accept_shares', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'accept_shares', 'frequency', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
 	}
 }
