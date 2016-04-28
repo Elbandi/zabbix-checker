@@ -57,6 +57,40 @@ func (c DiscoveryData) Json() string {
 	return b.String()
 }
 
+func (c DiscoveryData) JsonLine() string {
+	b := bytes.Buffer{}
+
+	b.WriteString("{\"data\":[")
+
+	for i, item := range c {
+		if i > 0 {
+			b.WriteString(",")
+		}
+
+		b.WriteString("{")
+
+		firstMacro := true
+		for macro, val := range item {
+			if firstMacro {
+				firstMacro = false
+			} else {
+				b.WriteString(",")
+			}
+
+			b.WriteString("\"{#")
+			b.WriteString(macroName(macro))
+			b.WriteString("}\":\"")
+			b.WriteString(jsonEscape(val))
+			b.WriteString("\"")
+		}
+
+		b.WriteString("}")
+	}
+
+	b.WriteString("]}")
+
+	return b.String()
+}
 // escape JSON values to prevent invalidating discovery response body
 func jsonEscape(a string) string {
 	return strings.Replace(a, "\"", "\\\"", -1)
