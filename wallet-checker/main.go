@@ -13,6 +13,26 @@ import (
 	"strconv"
 )
 
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	return fmt.Sprintf("%s", *i)
+}
+
+func (i *arrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 type BitcoinConfig struct {
 	Hostname string `ini:"rpcconnect"`
 	Port     int    `ini:"rpcport"`
@@ -21,9 +41,11 @@ type BitcoinConfig struct {
 }
 
 func main() {
+	var excludesearch arrayFlags
 	hostnamePtr := flag.String("hostname", "", "zabbix hostname")
 	basepathPtr := flag.String("basepath", "/srv", "base path")
 	searchSuffixPtr := flag.String("searchSuffix", "-data", "search suffix")
+	flag.Var(&excludesearch, "exclude", "exclude from search list")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
@@ -41,8 +63,12 @@ func main() {
 			return nil
 		}
 		if strings.HasSuffix(path, *searchSuffixPtr) {
+			name := strings.TrimSuffix(filepath.Base(path), *searchSuffixPtr)
+			if stringInSlice(name, excludesearch) {
+				return nil
+			}
 			item := make(lld.DiscoveryItem, 0)
-			item["NAME"] = strings.TrimSuffix(filepath.Base(path), *searchSuffixPtr)
+			item["NAME"] = name
 			item["PATH"] = path
 			discovery = append(discovery, item)
 		}
