@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
@@ -149,7 +150,12 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to obtain proxy dialer: %v", err)
 		}
-		http.DefaultTransport = &http.Transport{Dial: dialer.Dial}
+		http.DefaultTransport = &http.Transport{
+			Dial: dialer.Dial,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
 		log.Printf("Set proxy to %s", proxyURL)
 	}
 
