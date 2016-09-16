@@ -1,18 +1,51 @@
 package main
 
 import (
+	"github.com/Elbandi/zabbix-checker/common/lld"
+	"bufio"
 	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"os"
 	"github.com/bitbandi/go-mpos-api"
 	"golang.org/x/net/proxy"
 )
 
 const userAgent = "mpoos-pool-checker/1.0"
+
+// DiscoverPools is a DiscoveryItemHandlerFunc for key `mpos.discovery` which returns JSON
+// encoded discovery data for pool stored in a file
+func DiscoverPools(request []string) (lld.DiscoveryData, error) {
+	// init discovery data
+	d := make(lld.DiscoveryData, 0)
+	file, err := os.Open(request[0])
+	if err != nil {
+		return d, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.Split(strings.TrimSpace(scanner.Text()), "|")
+		if len(line) != 4 {
+			continue
+		}
+		item := make(lld.DiscoveryItem, 0)
+		item["NAME"] = strings.TrimSpace(line[0])
+		item["HOST"] = strings.TrimSpace(line[1])
+		item["APIKEY"] = strings.TrimSpace(line[2])
+		item["PROXY"] = strings.TrimSpace(line[3])
+		d = append(d, item)
+	}
+	if err := scanner.Err(); err != nil {
+		return d, err
+	}
+	return d, nil
+}
 
 // PoolHashrate is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
 // counter.
@@ -160,6 +193,17 @@ func main() {
 	}
 
 	switch flag.Arg(0) {
+	case "discovery":
+		switch flag.NArg() {
+		case 2:
+			if v, err := DiscoverPools(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v.Json())
+			}
+		default:
+			log.Fatalf("Usage: %s discovery PATH", os.Args[0])
+		}
 	case "pool_hashrate":
 		switch flag.NArg() {
 		case 3:
@@ -283,6 +327,7 @@ func main() {
 		}
 	default:
 		log.Fatal("You must specify one of the following action: " +
+			"'discovery', " +
 			"'pool_hashrate', 'pool_workers', 'pool_efficiency', 'pool_lastblock', 'pool_nextblock', " +
 			"'user_hashrate', 'user_sharerate', 'user_shares_valid', 'user_shares_invalid', " +
 			"'user_balance_confirmed' or 'user_balance_unconfirmed'.")
