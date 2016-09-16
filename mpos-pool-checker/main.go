@@ -11,10 +11,12 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+const userAgent = "mpoos-pool-checker/1.0"
+
 // PoolHashrate is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
 // counter.
 func PoolHashrate(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -25,7 +27,7 @@ func PoolHashrate(request []string) (float64, error) {
 // PoolWorker is a Uint32ItemHandlerFunc for key `mpos.pool_workers` which returns the pool workers
 // counter.
 func PoolWorkers(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -36,7 +38,7 @@ func PoolWorkers(request []string) (uint32, error) {
 // PoolEfficiency is a DoubleItemHandlerFunc for key `mpos.pool_efficiency` which returns the pool efficiency
 // ratio.
 func PoolEfficiency(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -47,7 +49,7 @@ func PoolEfficiency(request []string) (float64, error) {
 // PoolLastBlock is a Uint32ItemHandlerFunc for key `mpos.pool_lastblock` which returns the pool last block
 // height.
 func PoolLastBlock(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -58,7 +60,7 @@ func PoolLastBlock(request []string) (uint32, error) {
 // PoolLastBlock is a Uint32ItemHandlerFunc for key `mpos.pool_nextblock` which returns the pool next block
 // height.
 func PoolNextBlock(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -70,7 +72,7 @@ func PoolNextBlock(request []string) (uint32, error) {
 // UserHashrate is a DoubleItemHandlerFunc for key `mpos.user_hashrate` which returns the user hashrate
 // counter.
 func UserHashrate(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -81,7 +83,7 @@ func UserHashrate(request []string) (float64, error) {
 // UserSharerate is a DoubleItemHandlerFunc for key `mpos.user_sharerate` which returns the user sharerate
 // counter.
 func UserSharerate(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -92,7 +94,7 @@ func UserSharerate(request []string) (float64, error) {
 // UserSharesValid is a DoubleItemHandlerFunc for key `mpos.user_shares_valid` which returns the user valid
 // shares.
 func UserSharesValid(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -103,7 +105,7 @@ func UserSharesValid(request []string) (float64, error) {
 // UserSharesInvalid is a DoubleItemHandlerFunc for key `mpos.user_shares_invalid` which returns the user invalid
 // shares.
 func UserSharesInvalid(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -114,7 +116,7 @@ func UserSharesInvalid(request []string) (float64, error) {
 // UserBalanceConfirmed is a DoubleItemHandlerFunc for key `mpos.user_balance_confirmed` which returns the user
 // confirmed balance.
 func UserBalanceConfirmed(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
 		return 0.00, err
@@ -125,7 +127,7 @@ func UserBalanceConfirmed(request []string) (float64, error) {
 // UserBalanceConfirmed is a DoubleItemHandlerFunc for key `mpos.user_balance_unconfirmed` which returns the user
 // unconfirmed balance.
 func UserBalanceUnconfirmed(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1])
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
 		return 0.00, err
