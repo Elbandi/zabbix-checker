@@ -32,15 +32,19 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		line := strings.Split(strings.TrimSpace(scanner.Text()), "|")
-		if len(line) != 4 {
+		line := strings.TrimSpace(scanner.Text())
+		if line[0] == '#' {
+			continue
+		}
+		fields := strings.Split(line, "|")
+		if len(fields) != 4 {
 			continue
 		}
 		item := make(lld.DiscoveryItem, 0)
-		item["NAME"] = strings.TrimSpace(line[0])
-		item["HOST"] = strings.TrimSpace(line[1])
-		item["APIKEY"] = strings.TrimSpace(line[2])
-		item["PROXY"] = strings.TrimSpace(line[3])
+		item["NAME"] = strings.TrimSpace(fields[0])
+		item["HOST"] = strings.TrimSpace(fields[1])
+		item["APIKEY"] = strings.TrimSpace(fields[2])
+		item["PROXY"] = strings.TrimSpace(fields[3])
 		d = append(d, item)
 	}
 	if err := scanner.Err(); err != nil {
