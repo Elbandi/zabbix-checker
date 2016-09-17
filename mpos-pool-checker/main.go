@@ -17,6 +17,8 @@ import (
 
 const userAgent = "mpoos-pool-checker/1.0"
 
+var debugPtr *bool
+
 // DiscoverPools is a DiscoveryItemHandlerFunc for key `mpos.discovery` which returns JSON
 // encoded discovery data for pool stored in a file
 func DiscoverPools(request []string) (lld.DiscoveryData, error) {
@@ -51,6 +53,7 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 // counter.
 func PoolHashrate(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -62,6 +65,7 @@ func PoolHashrate(request []string) (float64, error) {
 // counter.
 func PoolWorkers(request []string) (uint32, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -73,6 +77,7 @@ func PoolWorkers(request []string) (uint32, error) {
 // ratio.
 func PoolEfficiency(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -84,6 +89,7 @@ func PoolEfficiency(request []string) (float64, error) {
 // height.
 func PoolLastBlock(request []string) (uint32, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -95,6 +101,7 @@ func PoolLastBlock(request []string) (uint32, error) {
 // height.
 func PoolNextBlock(request []string) (uint32, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -107,6 +114,7 @@ func PoolNextBlock(request []string) (uint32, error) {
 // counter.
 func UserHashrate(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -118,6 +126,7 @@ func UserHashrate(request []string) (float64, error) {
 // counter.
 func UserSharerate(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -129,6 +138,7 @@ func UserSharerate(request []string) (float64, error) {
 // shares.
 func UserSharesValid(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -140,6 +150,7 @@ func UserSharesValid(request []string) (float64, error) {
 // shares.
 func UserSharesInvalid(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -151,6 +162,7 @@ func UserSharesInvalid(request []string) (float64, error) {
 // confirmed balance.
 func UserBalanceConfirmed(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
 		return 0.00, err
@@ -162,6 +174,7 @@ func UserBalanceConfirmed(request []string) (float64, error) {
 // unconfirmed balance.
 func UserBalanceUnconfirmed(request []string) (float64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(*debugPtr)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
 		return 0.00, err
@@ -171,6 +184,7 @@ func UserBalanceUnconfirmed(request []string) (float64, error) {
 
 func main() {
 	proxyPtr := flag.String("proxy", "", "socks proxy")
+	debugPtr = flag.Bool("debug", false, "enable request/response dump")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
