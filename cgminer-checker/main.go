@@ -79,6 +79,22 @@ func sendDiscoveryMsg(port int) {
 	c.Write([]byte(msg))
 }
 
+func isMyAddress(ip net.IP) bool {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return false
+	}
+
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.Equal(ip) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // DiscoverMiner is a DiscoveryItemHandlerFunc for key `cgminer.discovery` which returns JSON
 // encoded discovery data for all running cgminer
 func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
@@ -97,9 +113,12 @@ func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
 	l.SetReadDeadline(time.Now().Add(2 * time.Second))
 	for {
 		b := make([]byte, maxDatagramSize)
-		n, _, err := l.ReadFromUDP(b)
+		n, addr, err := l.ReadFromUDP(b)
 		if err != nil {
 			break
+		}
+		if isMyAddress(addr.IP) {
+			continue
 		}
 		msg := strings.Split(string(b[:n]), "-")
 		if len(msg) < 3 {
