@@ -20,7 +20,7 @@ const userAgent = "yiimp-pool-checker/1.0"
 
 var debugPtr *bool
 
-// DiscoverPools is a DiscoveryItemHandlerFunc for key `mpos.discovery` which returns JSON
+// DiscoverPools is a DiscoveryItemHandlerFunc for key `yiimp.discovery` which returns JSON
 // encoded discovery data for pool stored in a file
 func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 	// init discovery data
@@ -56,7 +56,7 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 	return d, nil
 }
 
-// PoolHashrate is a Uint64ItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
+// PoolHashrate is a Uint64ItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool hashrate
 // counter.
 func PoolHashrate(request []string) (uint64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
@@ -72,7 +72,7 @@ func PoolHashrate(request []string) (uint64, error) {
 	return algo.Hashrate, nil
 }
 
-// PoolWorker is a Uint32ItemHandlerFunc for key `mpos.pool_workers` which returns the pool workers
+// PoolWorker is a Uint32ItemHandlerFunc for key `yiimp.pool_workers` which returns the pool workers
 // counter.
 func PoolWorkers(request []string) (uint16, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
@@ -88,8 +88,8 @@ func PoolWorkers(request []string) (uint16, error) {
 	return algo.Workers, nil
 }
 
-// PoolEstimateCurrent is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
-// counter.
+// PoolEstimateCurrent is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool estimate current
+// price value.
 func PoolEstimateCurrent(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
 	yiimpClient.SetDebug(*debugPtr)
@@ -104,8 +104,8 @@ func PoolEstimateCurrent(request []string) (float64, error) {
 	return algo.EstimateCurrent, nil
 }
 
-// PoolEstimateLast24h is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
-// counter.
+// PoolEstimateLast24h is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool estimate last 24h
+// price value.
 func PoolEstimateLast24h(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
 	yiimpClient.SetDebug(*debugPtr)
@@ -120,8 +120,8 @@ func PoolEstimateLast24h(request []string) (float64, error) {
 	return algo.EstimateLast24h, nil
 }
 
-// PoolActualLast24h is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
-// counter.
+// PoolActualLast24h is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool estimate last 24h
+// price value.
 func PoolActualLast24h(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
 	yiimpClient.SetDebug(*debugPtr)
@@ -136,8 +136,8 @@ func PoolActualLast24h(request []string) (float64, error) {
 	return algo.ActualLast24h, nil
 }
 
-// PoolRentalCurrent is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
-// counter.
+// PoolRentalCurrent is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool current rental
+// price value.
 func PoolRentalCurrent(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
 	yiimpClient.SetDebug(*debugPtr)
