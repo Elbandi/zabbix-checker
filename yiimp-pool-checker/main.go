@@ -152,6 +152,24 @@ func PoolRentalCurrent(request []string) (float64, error) {
 	return algo.RentalCurrent, nil
 }
 
+// UserHashrate is a DoubleItemHandlerFunc for key `yiimp.user_hashrate` which returns the user hashrate
+// counter.
+func UserHashrate(request []string) (float64, error) {
+	mposClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
+	mposClient.SetDebug(*debugPtr)
+	status, err := mposClient.GetWalletEx(request[1])
+	if err != nil {
+		return 0.00, err
+	}
+	var hashrate float64 = 0.00
+	for _, miner := range status.Miners {
+		if miner.Algo == request[2] {
+			hashrate += miner.Accepted
+		}
+	}
+	return hashrate, nil
+}
+
 func main() {
 	proxyPtr := flag.String("proxy", "", "socks proxy")
 	debugPtr = flag.Bool("debug", false, "enable request/response dump")
@@ -254,10 +272,21 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s rental_current URL APIKEY", os.Args[0])
 		}
+	case "user_hashrate":
+		switch flag.NArg() {
+		case 4:
+			if v, err := UserHashrate(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s user_hashrate URL ADDRESS ALGORITHM", os.Args[0])
+		}
 	default:
 		log.Fatal("You must specify one of the following action: " +
 			"'discovery', " +
 			"'pool_hashrate', 'pool_workers', 'estimate_current', 'estimate_last24h', 'actual_last24h', " +
-			"or 'rental_current'.")
+			"'user_hashrate' or 'rental_current'.")
 	}
 }
