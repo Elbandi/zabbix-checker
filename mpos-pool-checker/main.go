@@ -37,14 +37,15 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 			continue
 		}
 		fields := strings.Split(line, "|")
-		if len(fields) != 4 {
+		if len(fields) != 5 {
 			continue
 		}
 		item := make(lld.DiscoveryItem, 0)
 		item["NAME"] = strings.TrimSpace(fields[0])
-		item["HOST"] = strings.TrimSpace(fields[1])
-		item["APIKEY"] = strings.TrimSpace(fields[2])
-		item["PROXY"] = strings.TrimSpace(fields[3])
+		item["TYPE"] = strings.TrimSpace(fields[1])
+		item["HOST"] = strings.TrimSpace(fields[2])
+		item["APIKEY"] = strings.TrimSpace(fields[3])
+		item["PROXY"] = strings.TrimSpace(fields[4])
 		d = append(d, item)
 	}
 	if err := scanner.Err(); err != nil {
