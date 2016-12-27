@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -15,12 +16,13 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-const userAgent = "mpos-pool-checker/1.0"
+const defaultUserAgent = "mpos-pool-checker/1.0"
 
 var (
 	// flags
-	debugPtr *bool
-	userAgentPtr *string
+	debug bool
+	output string
+	userAgent string
 )
 
 // DiscoverPools is a DiscoveryItemHandlerFunc for key `mpos.discovery` which returns JSON
@@ -61,8 +63,8 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 // PoolHashrate is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
 // counter.
 func PoolHashrate(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -73,8 +75,8 @@ func PoolHashrate(request []string) (float64, error) {
 // PoolWorker is a Uint32ItemHandlerFunc for key `mpos.pool_workers` which returns the pool workers
 // counter.
 func PoolWorkers(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -85,8 +87,8 @@ func PoolWorkers(request []string) (uint32, error) {
 // PoolEfficiency is a DoubleItemHandlerFunc for key `mpos.pool_efficiency` which returns the pool efficiency
 // ratio.
 func PoolEfficiency(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -97,8 +99,8 @@ func PoolEfficiency(request []string) (float64, error) {
 // PoolLastBlock is a Uint32ItemHandlerFunc for key `mpos.pool_lastblock` which returns the pool last block
 // height.
 func PoolLastBlock(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -109,8 +111,8 @@ func PoolLastBlock(request []string) (uint32, error) {
 // PoolLastBlock is a Uint32ItemHandlerFunc for key `mpos.pool_nextblock` which returns the pool next block
 // height.
 func PoolNextBlock(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -122,8 +124,8 @@ func PoolNextBlock(request []string) (uint32, error) {
 // UserHashrate is a DoubleItemHandlerFunc for key `mpos.user_hashrate` which returns the user hashrate
 // counter.
 func UserHashrate(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -134,8 +136,8 @@ func UserHashrate(request []string) (float64, error) {
 // UserSharerate is a DoubleItemHandlerFunc for key `mpos.user_sharerate` which returns the user sharerate
 // counter.
 func UserSharerate(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -146,8 +148,8 @@ func UserSharerate(request []string) (float64, error) {
 // UserSharesValid is a DoubleItemHandlerFunc for key `mpos.user_shares_valid` which returns the user valid
 // shares.
 func UserSharesValid(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -158,8 +160,8 @@ func UserSharesValid(request []string) (float64, error) {
 // UserSharesInvalid is a DoubleItemHandlerFunc for key `mpos.user_shares_invalid` which returns the user invalid
 // shares.
 func UserSharesInvalid(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
 		return 0.00, err
@@ -170,8 +172,8 @@ func UserSharesInvalid(request []string) (float64, error) {
 // UserBalanceConfirmed is a DoubleItemHandlerFunc for key `mpos.user_balance_confirmed` which returns the user
 // confirmed balance.
 func UserBalanceConfirmed(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
 		return 0.00, err
@@ -182,8 +184,8 @@ func UserBalanceConfirmed(request []string) (float64, error) {
 // UserBalanceConfirmed is a DoubleItemHandlerFunc for key `mpos.user_balance_unconfirmed` which returns the user
 // unconfirmed balance.
 func UserBalanceUnconfirmed(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], *userAgentPtr)
-	mposClient.SetDebug(*debugPtr)
+	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
 		return 0.00, err
@@ -193,8 +195,9 @@ func UserBalanceUnconfirmed(request []string) (float64, error) {
 
 func main() {
 	proxyPtr := flag.String("proxy", "", "socks proxy")
-	debugPtr = flag.Bool("debug", false, "enable request/response dump")
-	userAgentPtr = flag.String("user-agent", userAgent, "http client user agent")
+	flag.BoolVar(&debug, "debug", false, "enable request/response dump")
+	flag.StringVar(&output, "output", "", "output the result to file")
+	flag.StringVar(&userAgent, "user-agent", defaultUserAgent, "http client user agent")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
@@ -223,7 +226,11 @@ func main() {
 			if v, err := DiscoverPools(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v.Json())
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v.Json())), 0644)
+				} else {
+					fmt.Print(v.Json())
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s discovery PATH", os.Args[0])
@@ -234,7 +241,11 @@ func main() {
 			if v, err := PoolHashrate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_hashrate URL APIKEY", os.Args[0])
@@ -245,7 +256,11 @@ func main() {
 			if v, err := PoolWorkers(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_workers URL APIKEY", os.Args[0])
@@ -256,7 +271,11 @@ func main() {
 			if v, err := PoolEfficiency(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_efficiency URL APIKEY", os.Args[0])
@@ -267,7 +286,11 @@ func main() {
 			if v, err := PoolLastBlock(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_lastblock URL APIKEY", os.Args[0])
@@ -278,7 +301,11 @@ func main() {
 			if v, err := PoolNextBlock(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_nextblock URL APIKEY", os.Args[0])
@@ -289,7 +316,11 @@ func main() {
 			if v, err := UserHashrate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_hashrate URL APIKEY", os.Args[0])
@@ -300,7 +331,11 @@ func main() {
 			if v, err := UserSharerate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_sharerate URL APIKEY", os.Args[0])
@@ -311,7 +346,11 @@ func main() {
 			if v, err := UserSharesValid(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_shares_valid URL APIKEY", os.Args[0])
@@ -322,7 +361,11 @@ func main() {
 			if v, err := UserSharesInvalid(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_shares_invalid URL APIKEY", os.Args[0])
@@ -333,7 +376,11 @@ func main() {
 			if v, err := UserBalanceConfirmed(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_balance_confirmed URL APIKEY", os.Args[0])
@@ -344,7 +391,11 @@ func main() {
 			if v, err := UserBalanceUnconfirmed(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_balance_unconfirmed URL APIKEY", os.Args[0])
