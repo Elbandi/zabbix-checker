@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -16,7 +17,7 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-const userAgent = "nomp-pool-checker/1.0"
+const defaultUserAgent = "nomp-pool-checker/1.0"
 
 var (
 	// Errors
@@ -24,8 +25,9 @@ var (
 	ErrWorkerNotFound = errors.New("Worker not found")
 
 	// flags
-	debugPtr *bool
-	userAgentPtr *string
+	debug bool
+	output string
+	userAgent string
 )
 
 // DiscoverPools is a DiscoveryItemHandlerFunc for key `nomp.discovery` which returns JSON
@@ -67,8 +69,8 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 // PoolHashrate is a DoubleItemHandlerFunc for key `nomp.pool_hashrate` which returns the pool hashrate
 // counter.
 func PoolHashrate(request []string) (float64, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -83,8 +85,8 @@ func PoolHashrate(request []string) (float64, error) {
 // PoolWorker is a Uint32ItemHandlerFunc for key `nomp.pool_workers` which returns the pool workers
 // counter.
 func PoolWorkers(request []string) (uint32, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -99,8 +101,8 @@ func PoolWorkers(request []string) (uint32, error) {
 // PoolSharesValid is a Uint32ItemHandlerFunc for key `nomp.pool_shares_valid` which returns the pool valid
 // shares.
 func PoolSharesValid(request []string) (uint32, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -115,8 +117,8 @@ func PoolSharesValid(request []string) (uint32, error) {
 // PoolSharesInvalid is a Uint32ItemHandlerFunc for key `nomp.pool_shares_invalid` which returns the pool invalid
 // shares.
 func PoolSharesInvalid(request []string) (uint32, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -131,8 +133,8 @@ func PoolSharesInvalid(request []string) (uint32, error) {
 // PoolPendingBlock is a Uint32ItemHandlerFunc for key `nomp.pool_blocks_pending` which returns the pool pending
 // block count.
 func PoolPendingBlock(request []string) (uint32, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -147,8 +149,8 @@ func PoolPendingBlock(request []string) (uint32, error) {
 // PoolConfirmedBlock is a Uint32ItemHandlerFunc for key `nomp.pool_blocks_confirmed` which returns the pool confirmed
 // block count.
 func PoolConfirmedBlock(request []string) (uint32, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0, err
@@ -163,8 +165,8 @@ func PoolConfirmedBlock(request []string) (uint32, error) {
 // UserHashrate is a DoubleItemHandlerFunc for key `nomp.user_hashrate` which returns the user hashrate
 // counter.
 func UserHashrate(request []string) (float64, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -183,8 +185,8 @@ func UserHashrate(request []string) (float64, error) {
 // UserSharesValid is a DoubleItemHandlerFunc for key `nomp.user_shares_valid` which returns the user valid
 // shares.
 func UserSharesValid(request []string) (float64, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -203,8 +205,8 @@ func UserSharesValid(request []string) (float64, error) {
 // UserSharesInvalid is a DoubleItemHandlerFunc for key `nomp.user_shares_invalid` which returns the user invalid
 // shares.
 func UserSharesInvalid(request []string) (float64, error) {
-	nompClient := nomp.NewNompClient(nil, request[0], *userAgentPtr)
-	nompClient.SetDebug(*debugPtr)
+	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
+	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
 		return 0.00, err
@@ -222,8 +224,9 @@ func UserSharesInvalid(request []string) (float64, error) {
 
 func main() {
 	proxyPtr := flag.String("proxy", "", "socks proxy")
-	debugPtr = flag.Bool("debug", false, "enable request/response dump")
-	userAgentPtr = flag.String("user-agent", userAgent, "http client user agent")
+	flag.BoolVar(&debug, "debug", false, "enable request/response dump")
+	flag.StringVar(&output, "output", "", "output the result to file")
+	flag.StringVar(&userAgent, "user-agent", defaultUserAgent, "http client user agent")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
@@ -252,7 +255,11 @@ func main() {
 			if v, err := DiscoverPools(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v.Json())
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v.Json())), 0644)
+				} else {
+					fmt.Print(v.Json())
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s discovery PATH", os.Args[0])
@@ -263,7 +270,11 @@ func main() {
 			if v, err := PoolHashrate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_hashrate URL POOL", os.Args[0])
@@ -274,7 +285,11 @@ func main() {
 			if v, err := PoolWorkers(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_workers URL POOL", os.Args[0])
@@ -296,7 +311,11 @@ func main() {
 			if v, err := PoolConfirmedBlock(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_blocks_confirmed URL POOL", os.Args[0])
@@ -307,7 +326,11 @@ func main() {
 			if v, err := PoolSharesValid(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_shares_valid URL POOL", os.Args[0])
@@ -318,7 +341,11 @@ func main() {
 			if v, err := PoolSharesInvalid(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_shares_invalid URL POOL", os.Args[0])
@@ -329,7 +356,11 @@ func main() {
 			if v, err := UserHashrate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_hashrate URL POOL WORKER", os.Args[0])
@@ -340,7 +371,11 @@ func main() {
 			if v, err := UserSharesValid(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_shares_valid URL POOL WORKER", os.Args[0])
@@ -351,7 +386,11 @@ func main() {
 			if v, err := UserSharesInvalid(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_shares_invalid URL POOL WORKER", os.Args[0])
