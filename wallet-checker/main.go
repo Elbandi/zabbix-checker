@@ -115,5 +115,13 @@ func main() {
 			continue
 		}
 		fmt.Printf("\"%s\" \"wallet.balance[%s]\" \"%f\"\n", *hostnamePtr, element["NAME"], balance.ToBTC())
+
+		logPath := filepath.Join(element["PATH"], "debug.log")
+		fi, err := os.Stat(logPath)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"%d\"\n", *hostnamePtr, logPath, fi.Size())
 	}
 }
