@@ -80,8 +80,16 @@ func main() {
 	}
 	fmt.Printf("\"%s\" \"wallet.discovery\" %s\n", *hostnamePtr, strconv.Quote(discovery.JsonLine()))
 	for _, element := range discovery {
+		logPath := filepath.Join(element["PATH"], "debug.log")
+		fi, err := os.Stat(logPath)
+		if err != nil {
+			log.Print(err)
+		} else {
+			fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"%d\"\n", *hostnamePtr, logPath, fi.Size())
+		}
+
 		config := &BitcoinConfig{Hostname:"127.0.0.1", Port:8332}
-		err := ini.MapTo(config, filepath.Join(element["PATH"], element["NAME"] + ".conf"))
+		err = ini.MapTo(config, filepath.Join(element["PATH"], element["NAME"] + ".conf"))
 		if err != nil {
 			log.Print(err)
 			continue
@@ -115,13 +123,5 @@ func main() {
 			continue
 		}
 		fmt.Printf("\"%s\" \"wallet.balance[%s]\" \"%f\"\n", *hostnamePtr, element["NAME"], balance.ToBTC())
-
-		logPath := filepath.Join(element["PATH"], "debug.log")
-		fi, err := os.Stat(logPath)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"%d\"\n", *hostnamePtr, logPath, fi.Size())
 	}
 }
