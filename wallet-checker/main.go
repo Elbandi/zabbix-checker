@@ -83,7 +83,11 @@ func main() {
 		logPath := filepath.Join(element["PATH"], "debug.log")
 		fi, err := os.Stat(logPath)
 		if err != nil {
-			log.Print(err)
+			if os.IsNotExist(err) {
+				fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"0\"\n", *hostnamePtr, logPath)
+			} else {
+				log.Print(err)
+			}
 		} else {
 			fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"%d\"\n", *hostnamePtr, logPath, fi.Size())
 		}
