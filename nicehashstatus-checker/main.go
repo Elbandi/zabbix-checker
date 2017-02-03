@@ -79,17 +79,17 @@ func main() {
 			if err != nil {
 				continue
 			}
-			if len(allorders) > 0 {
+			if len(orders) > 0 {
 				pairs = append(pairs, struct{ nicehash.AlgoType; nicehash.Location }{algo, loc})
 			}
 			allorders = append(allorders, orders...)
-			for _, order := range allorders {
+			for _, order := range orders {
 				item := make(lld.DiscoveryItem, 0)
 				item["ID"] = strconv.FormatUint(order.Id, 10)
 				item["TYPE"] = order.Type.ToString()
 				item["ALGO"] = order.Algo.ToString()
 				item["LOCATION"] = loc.ToString()
-				item["NAME"] = fmt.Sprintf("%s #%d", order.Type.ToString()[0], order.Id)
+				item["NAME"] = fmt.Sprintf("%c #%d", order.Type.ToString()[0], order.Id)
 				discovery = append(discovery, item)
 			}
 			time.Sleep(2 * time.Second)
@@ -122,6 +122,8 @@ func main() {
 				minprice = order.Price
 			}
 		}
-		fmt.Printf("\"%s\" \"nicehash.lowprice[%s,%s]\" \"%f\"\n", hostname, pair.Location.ToString(), pair.AlgoType.ToString(), minprice)
+		if minprice < math.MaxFloat64 {
+			fmt.Printf("\"%s\" \"nicehash.lowprice[%s,%s]\" \"%f\"\n", hostname, pair.Location.ToString(), pair.AlgoType.ToString(), minprice)
+		}
 	}
 }
