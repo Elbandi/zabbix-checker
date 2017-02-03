@@ -98,6 +98,7 @@ func main() {
 	fmt.Printf("\"%s\" \"nicehash.discovery\" %s\n", hostname, strconv.Quote(discovery.JsonLine()))
 
 	for _, order := range allorders {
+		fmt.Printf("\"%s\" \"nicehash.price[%d]\" \"%f\"\n", hostname, order.Id, order.Price)
 		fmt.Printf("\"%s\" \"nicehash.btcavail[%d]\" \"%f\"\n", hostname, order.Id, order.BtcAvail)
 		if order.Alive {
 			fmt.Printf("\"%s\" \"nicehash.status[%d]\" \"Alive\"\n", hostname, order.Id)
