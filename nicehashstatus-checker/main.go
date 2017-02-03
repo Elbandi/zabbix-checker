@@ -23,12 +23,14 @@ var (
 	ApiKey string
 	UpdateInterval uint
 	hostname string
+	baseurl string
 	debug bool
 	userAgent string
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Print debug infos")
+	flag.StringVar(&baseurl, "base", "https://www.nicehash.com", "nicehash base domain")
 	flag.StringVar(&ApiId, "apiid", "", "Nicehash api id")
 	flag.StringVar(&ApiKey, "apikey", "", "Nicehash api key")
 	flag.UintVar(&UpdateInterval, "updateinterval", 300, "Update interval")
@@ -67,7 +69,7 @@ func main() {
 
 	var pairs []struct{ nicehash.AlgoType; nicehash.Location }
 
-	client := nicehash.NewNicehashClient(nil, ApiId, ApiKey, userAgent)
+	client := nicehash.NewNicehashClient(nil, baseurl, ApiId, ApiKey, userAgent)
 	client.SetDebug(debug)
 
 	discovery := make(lld.DiscoveryData, 0)
