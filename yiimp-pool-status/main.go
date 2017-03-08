@@ -27,15 +27,16 @@ func algo_mBTC_factor(algo string) (uint16) {
 	}
 }
 func main() {
-	var hostname, url string
+	var hostname, url, poolkey string
 	var debug bool
 	flag.BoolVar(&debug, "debug", false, "enable request/response dump")
 	flag.StringVar(&hostname, "hostname", "", "zabbix hostname")
 	flag.StringVar(&url, "url", "", "pool url")
+	flag.StringVar(&poolkey, "poolkey", "", "pool key")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
-	if hostname == "" || url == "" {
+	if hostname == "" || url == "" || poolkey == "" {
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -53,16 +54,16 @@ func main() {
 		item["ALGO"] = strings.TrimSpace(key)
 		discovery = append(discovery, item)
 	}
-	fmt.Printf("\"%s\" \"yiimpstatus.discovery\" %s\n", hostname, strconv.Quote(discovery.JsonLine()))
+	fmt.Printf("\"%s\" \"yiimpstatus.%s.discovery\" %s\n", hostname, poolkey, strconv.Quote(discovery.JsonLine()))
 	for _, element := range discovery {
 		key := element["ALGO"]
-		fmt.Printf("\"%s\" \"yiimpstatus.hashrate[%s]\" \"%.0f\"\n", hostname, element["ALGO"], status[key].Hashrate)
-		fmt.Printf("\"%s\" \"yiimpstatus.hashrate24h[%s]\" \"%.0f\"\n", hostname, element["ALGO"], status[key].Hashrate24h)
-		fmt.Printf("\"%s\" \"yiimpstatus.workers[%s]\" \"%d\"\n", hostname, element["ALGO"], status[key].Workers)
+		fmt.Printf("\"%s\" \"yiimpstatus.%s.hashrate[%s]\" \"%.0f\"\n", hostname, poolkey, element["ALGO"], status[key].Hashrate)
+		fmt.Printf("\"%s\" \"yiimpstatus.%s.hashrate24h[%s]\" \"%.0f\"\n", hostname, poolkey, element["ALGO"], status[key].Hashrate24h)
+		fmt.Printf("\"%s\" \"yiimpstatus.%s.workers[%s]\" \"%d\"\n", hostname, poolkey, element["ALGO"], status[key].Workers)
 		btcmhday := status[key].ActualLast24h / 1e3 // float64(algo_mBTC_factor(key))
-		fmt.Printf("\"%s\" \"yiimpstatus.btcmhday[%s]\" \"%f\"\n", hostname, element["ALGO"], btcmhday)
+		fmt.Printf("\"%s\" \"yiimpstatus.%s.btcmhday[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btcmhday)
 		btctotal := status[key].Hashrate24h * status[key].ActualLast24h / float64(algo_mBTC_factor(key)) / 1e9
-		fmt.Printf("\"%s\" \"yiimpstatus.btctotal[%s]\" \"%f\"\n", hostname, element["ALGO"], btctotal)
+		fmt.Printf("\"%s\" \"yiimpstatus.%s.btctotal[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btctotal)
 
 	}
 }
