@@ -56,8 +56,8 @@ func main() {
 	fmt.Printf("\"%s\" \"yiimpstatus.discovery\" %s\n", hostname, strconv.Quote(discovery.JsonLine()))
 	for _, element := range discovery {
 		key := element["ALGO"]
-		fmt.Printf("\"%s\" \"yiimpstatus.hashrate[%s]\" \"%f\"\n", hostname, element["ALGO"], status[key].Hashrate)
-		fmt.Printf("\"%s\" \"yiimpstatus.hashrate24h[%s]\" \"%f\"\n", hostname, element["ALGO"], status[key].Hashrate24h)
+		fmt.Printf("\"%s\" \"yiimpstatus.hashrate[%s]\" \"%.0f\"\n", hostname, element["ALGO"], status[key].Hashrate)
+		fmt.Printf("\"%s\" \"yiimpstatus.hashrate24h[%s]\" \"%.0f\"\n", hostname, element["ALGO"], status[key].Hashrate24h)
 		fmt.Printf("\"%s\" \"yiimpstatus.workers[%s]\" \"%d\"\n", hostname, element["ALGO"], status[key].Workers)
 		btcmhday := status[key].ActualLast24h / 1e3 // float64(algo_mBTC_factor(key))
 		fmt.Printf("\"%s\" \"yiimpstatus.btcmhday[%s]\" \"%f\"\n", hostname, element["ALGO"], btcmhday)
