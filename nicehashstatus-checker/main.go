@@ -89,6 +89,10 @@ func main() {
 				item["TYPE"] = order.Type.ToString()
 				item["ALGO"] = order.Algo.ToString()
 				item["LOCATION"] = loc.ToString()
+				item["HOST"] = order.PoolHost
+				item["PORT"] = strconv.FormatUint(uint64(order.PoolPort), 10)
+				item["USER"] = order.PoolUser
+				item["SPEED"] = strconv.FormatFloat(order.LimitSpeed, 'f', -1, 64)
 				item["NAME"] = fmt.Sprintf("%c #%d", order.Type.ToString()[0], order.Id)
 				discovery = append(discovery, item)
 			}
