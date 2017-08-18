@@ -13,9 +13,13 @@ import (
 
 const userAgent = "yiimp-status-checker/1.0"
 
-func algo_mBTC_factor(algo string) (uint16) {
+func algo_mBTC_factor(algo string) (uint32) {
 	switch algo {
-	case "sha256",
+	case "sha256":
+		return 1000000;
+	case "x11",
+		"qubit",
+		"quark",
 		"blake",
 		"blakecoin",
 		"blake2s",
