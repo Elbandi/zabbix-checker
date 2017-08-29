@@ -66,20 +66,20 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 	return d, nil
 }
 
-// PoolHashrate is a DoubleItemHandlerFunc for key `nomp.pool_hashrate` which returns the pool hashrate
+// PoolHashrate is a Uint64ItemHandlerFunc for key `nomp.pool_hashrate` which returns the pool hashrate
 // counter.
-func PoolHashrate(request []string) (float64, error) {
+func PoolHashrate(request []string) (uint64, error) {
 	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
 	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
-		return 0.00, err
+		return 0, err
 	}
 	pool, ok := status.Pools[request[1]]
 	if !ok {
-		return 0.00, ErrPoolNotFound
+		return 0, ErrPoolNotFound
 	}
-	return pool.Hashrate, nil
+	return uint64(pool.Hashrate), nil
 }
 
 // PoolWorker is a Uint32ItemHandlerFunc for key `nomp.pool_workers` which returns the pool workers
@@ -162,24 +162,24 @@ func PoolConfirmedBlock(request []string) (uint32, error) {
 	return pool.Blocks.Confirmed, nil
 }
 
-// UserHashrate is a DoubleItemHandlerFunc for key `nomp.user_hashrate` which returns the user hashrate
+// UserHashrate is a Uint64ItemHandlerFunc for key `nomp.user_hashrate` which returns the user hashrate
 // counter.
-func UserHashrate(request []string) (float64, error) {
+func UserHashrate(request []string) (uint64, error) {
 	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
 	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
 	if err != nil {
-		return 0.00, err
+		return 0, err
 	}
 	pool, ok := status.Pools[request[1]]
 	if !ok {
-		return 0.00, ErrPoolNotFound
+		return 0, ErrPoolNotFound
 	}
 	worker, ok := pool.Workers[request[2]]
 	if !ok {
-		return 0.00, ErrWorkerNotFound
+		return 0, ErrWorkerNotFound
 	}
-	return worker.Hashrate, nil
+	return uint64(worker.Hashrate), nil
 }
 
 // UserSharesValid is a DoubleItemHandlerFunc for key `nomp.user_shares_valid` which returns the user valid
