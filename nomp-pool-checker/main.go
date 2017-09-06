@@ -175,11 +175,18 @@ func UserHashrate(request []string) (uint64, error) {
 	if !ok {
 		return 0, ErrPoolNotFound
 	}
-	worker, ok := pool.Workers[request[2]]
+	var hashrate float64 = 0
+	ok = false
+	for idx, worker := range pool.Workers {
+		if strings.HasPrefix(idx, request[2]) {
+			hashrate += worker.Hashrate
+			ok = true
+		}
+	}
 	if !ok {
 		return 0, ErrWorkerNotFound
 	}
-	return uint64(worker.Hashrate), nil
+	return uint64(hashrate), nil
 }
 
 // UserSharesValid is a DoubleItemHandlerFunc for key `nomp.user_shares_valid` which returns the user valid
@@ -195,11 +202,18 @@ func UserSharesValid(request []string) (float64, error) {
 	if !ok {
 		return 0.00, ErrPoolNotFound
 	}
-	worker, ok := pool.Workers[request[2]]
+	var shares float64 = 0
+	ok = false
+	for idx, worker := range pool.Workers {
+		if strings.HasPrefix(idx, request[2]) {
+			shares += worker.Shares
+			ok = true
+		}
+	}
 	if !ok {
 		return 0.00, ErrWorkerNotFound
 	}
-	return worker.Shares, nil
+	return shares, nil
 }
 
 // UserSharesInvalid is a DoubleItemHandlerFunc for key `nomp.user_shares_invalid` which returns the user invalid
@@ -215,11 +229,18 @@ func UserSharesInvalid(request []string) (float64, error) {
 	if !ok {
 		return 0.00, ErrPoolNotFound
 	}
-	worker, ok := pool.Workers[request[2]]
+	var invalidshares float64 = 0
+	ok = false
+	for idx, worker := range pool.Workers {
+		if strings.HasPrefix(idx, request[2]) {
+			invalidshares += worker.InvalidShares
+			ok = true
+		}
+	}
 	if !ok {
 		return 0.00, ErrWorkerNotFound
 	}
-	return worker.InvalidShares, nil
+	return invalidshares, nil
 }
 
 func main() {
