@@ -55,7 +55,15 @@ func GetDifficulty(request []string) (float64, error) {
 			}
 		}
 	} else {
-		return f.(map[string]interface{})["difficulty"].(float64), nil
+		diff := f.(map[string]interface{})["difficulty"]
+		switch v := diff.(type) {
+		case float64:
+			return v, nil
+		case map[string]interface{}:
+			return v["proof-of-work"].(float64), nil
+		default:
+			return 0, errors.New("unknown difficulty type")
+		}
 	}
 	return 0, ErrAlgoNotFound
 }
