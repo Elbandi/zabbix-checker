@@ -20,6 +20,7 @@ func algo_mBTC_factor(algo string) (uint32) {
 	case "x11",
 		"qubit",
 		"quark",
+		"scrypt",
 		"blake",
 		"blakecoin",
 		"blake2s",
