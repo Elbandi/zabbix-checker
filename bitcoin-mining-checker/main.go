@@ -13,7 +13,8 @@ import (
 
 var (
 	// Errors
-	ErrAlgoNotFound = errors.New("Algo not found")
+	ErrAlgoNotFound    = errors.New("Algo not found")
+	ErrNetHashNotFound = errors.New("Network hashps not found")
 
 	// flags
 	Hostname string
@@ -101,7 +102,13 @@ func GetNetworkHashPS(request []string) (uint64, error) {
 			}
 		}
 	} else {
-		return uint64(f.(map[string]interface{})["networkhashps"].(float64)), nil
+		if val, ok := f.(map[string]interface{})["netmhashps"]; ok {
+			return uint64(val.(float64) * 1024 * 1024), nil
+		}
+		if val, ok := f.(map[string]interface{})["networkhashps"]; ok {
+			return uint64(val.(float64)), nil
+		}
+		return 0, ErrNetHashNotFound
 	}
 	return 0, ErrAlgoNotFound
 }
