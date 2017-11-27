@@ -16,7 +16,7 @@ const userAgent = "yiimp-status-checker/1.0"
 func algo_mBTC_factor(algo string) (uint32) {
 	switch algo {
 	case "sha256":
-		return 1000000;
+		return 1000000000;
 	case "x11",
 		"qubit",
 		"quark",
