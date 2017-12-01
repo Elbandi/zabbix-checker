@@ -4,13 +4,13 @@ import (
 	"github.com/bitbandi/go-miningrigrentals-api"
 	"github.com/Elbandi/zabbix-checker/common/lld"
 	"github.com/Elbandi/zabbix-checker/common/filemutex"
+	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
-	"fmt"
-	"strconv"
-	"errors"
 	"path/filepath"
+	"strconv"
 )
 
 // DiscoverRentals is a DiscoveryItemHandlerFunc for key `mrr.discovery` which returns JSON
@@ -79,6 +79,25 @@ func QueryStatus(request []string) (string, error) {
 	return rentals.Status, nil
 }
 
+// QueryLeft is a Uint64ItemHandlerFunc for key `mrr.left` which returns the left time
+// of a rentals.
+func QueryLeft(request []string) (uint64, error) {
+	// parse first param as int64
+	rentalid, err := strconv.ParseInt(request[2], 10, 64)
+	if err != nil {
+		return 0, errors.New("Invalid rentalid format")
+	}
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "mrr-" + request[0]))
+	lock.Lock()
+	defer lock.Unlock()
+	client := miningrigrentals.New(request[0], request[1])
+	rentals, err := client.GetRentalDetails(rentalid)
+	if err != nil {
+		return 0, err
+	}
+	return uint64(rentals.Left * 60), nil
+}
+
 // QuerySpeed is a DoubleItemHandlerFunc for key `mrr.speedpercent` which returns the speed percentage
 // for a rentals.
 func QuerySpeed(request []string) (float64, error) {
@@ -140,6 +159,17 @@ func main() {
 			}
 		default:
 			log.Fatalf("Usage: %s status KEY SECRET RENTALID", os.Args[0])
+		}
+	case "left":
+		switch flag.NArg() {
+		case 4:
+			if v, err := QueryLeft(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s left KEY SECRET RENTALID", os.Args[0])
 		}
 	case "speedpercent":
 		switch flag.NArg() {
