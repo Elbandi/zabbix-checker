@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"github.com/Elbandi/btcd/rpcclient"
@@ -165,6 +166,49 @@ func GetLastRecipient(request []string) (string, error) {
 	return "", errors.New("Coinbase not found")
 }
 
+func GetLastMinedHeight(request []string) (int64, error) {
+	var err error
+	txCount := 5
+	if len(request[0]) == 0 {
+		return 0, errors.New("Empty account name")
+	}
+	if len(request) > 1 && len(request[1]) > 0 {
+		txCount, err = strconv.Atoi(request[1])
+		if err != nil {
+			return 0, errors.New("Invalid transactions count format")
+		}
+	}
+	connCfg := &rpcclient.ConnConfig{
+		Host:         Hostname + ":" + strconv.Itoa(Port),
+		User:         Username,
+		Pass:         Password,
+		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
+		DisableTLS:   true, // Bitcoin core does not provide TLS by default
+	}
+	// Notice the notification parameter is nil since notifications are
+	// not supported in HTTP POST mode.
+	client, err := rpcclient.New(connCfg, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer client.Shutdown()
+
+	txs, err := client.ListTransactionsCount(request[0], txCount)
+	if err != nil {
+		return 0, err
+	}
+	maxHeight := int64(math.MaxInt64)
+	for _, tx := range txs {
+		if tx.Category != "immature" && tx.Category != "generate" {
+			continue
+		}
+		if maxHeight > tx.Confirmations {
+			maxHeight = tx.Confirmations
+		}
+	}
+	return maxHeight, nil
+}
+
 func main() {
 	flag.StringVar(&Hostname, "hostname", "localhost", "Send commands to node running on host")
 	flag.IntVar(&Port, "port", 1234, "Connect to JSON-RPC port")
@@ -192,9 +236,19 @@ func main() {
 		} else {
 			fmt.Print(v)
 		}
+	case "lastminedheight":
+		switch flag.NArg() {
+		case 2, 3:
+			if v, err := GetLastMinedHeight(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s lasttransactionheight ACCOUNT [COUNT]", os.Args[0])
+		}
 	default:
 		log.Fatal("You must specify one of the following action: " +
-			"'discovery', " +
-			"'difficulty' or 'networkhashps'.")
+			"'difficulty', 'networkhashps', 'lastrecipient' or 'lastminedheight'.")
 	}
 }
