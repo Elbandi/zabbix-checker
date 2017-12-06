@@ -13,10 +13,10 @@ import (
 
 const userAgent = "yiimp-status-checker/1.0"
 
-func algo_mBTC_factor(algo string) (uint32) {
+func algo_mBTC_factor(algo string) (float64) {
 	switch algo {
 	case "sha256":
-		return 1000000000;
+		return 1e9;
 	case "x11",
 		"qubit",
 		"quark",
@@ -26,7 +26,10 @@ func algo_mBTC_factor(algo string) (uint32) {
 		"blake2s",
 		"decred",
 		"vanilla":
-		return 1000;
+		return 1e3;
+	case "equihash",
+		"yescrypt":
+		return 1 / 1e3;
 	default:
 		return 1;
 	}
@@ -67,7 +70,8 @@ func main() {
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.workers[%s]\" \"%d\"\n", hostname, poolkey, element["ALGO"], status[key].Workers)
 		btcmhday := status[key].ActualLast24h / 1e3 // float64(algo_mBTC_factor(key))
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.btcmhday[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btcmhday)
-		btctotal := status[key].Hashrate24h * status[key].ActualLast24h / float64(algo_mBTC_factor(key)) / 1e9
+		factor := algo_mBTC_factor(key)
+		btctotal := status[key].Hashrate24h * status[key].ActualLast24h / factor / 1e9
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.btctotal[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btctotal)
 
 	}
