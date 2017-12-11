@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func GetPrice(request []string) (float64, error) {
@@ -15,8 +16,12 @@ func GetPrice(request []string) (float64, error) {
 		return 0.00, err
 	}
 	database := session.DB(request[1])
+	match := bson.M{"coin": request[3], "base": request[4]}
+	if len(request) > 5 {
+		match["exchange"] = bson.M{"$nin": strings.Split(request[5], ",")}
+	}
 	pipeline := []bson.M{
-		{"$match": bson.M{"coin": request[3], "base": request[4]}},
+		{"$match": match },
 		{"$group": bson.M{"_id": "$exchange", "lastDate" : bson.M{"$last" : "$date" }, "price" : bson.M{"$last" : "$price" }, "volume" : bson.M{"$last" : "$volume" } } },
 		{"$project": bson.M{"_id": 0, "exchange": "$_id", "buy": "$price.buy", "volume": "$volume.coin", "basevolume": "$volume.base" } },
 		{"$sort": bson.M{"volume" : -1 } },
@@ -39,7 +44,7 @@ func main() {
 	log.SetOutput(os.Stderr)
 
 	switch flag.NArg() {
-	case 5:
+	case 5, 6:
 		if v, err := GetPrice(flag.Args()); err != nil {
 			log.Fatalf("Error: %s", err.Error())
 		} else {
