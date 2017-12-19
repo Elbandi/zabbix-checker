@@ -24,6 +24,8 @@ func algo_mBTC_factor(algo string) (float64) {
 		"blake",
 		"blakecoin",
 		"blake2s",
+		"keccak",
+		"keccakc",
 		"decred",
 		"vanilla":
 		return 1e3;
