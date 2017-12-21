@@ -117,7 +117,7 @@ func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
 		if err != nil {
 			break
 		}
-		if isMyAddress(addr.IP) {
+		if !isMyAddress(addr.IP) {
 			continue
 		}
 		msg := strings.Split(string(b[:n]), "-")
