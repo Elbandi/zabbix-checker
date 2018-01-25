@@ -67,6 +67,31 @@ func DiscoverOrders(request []string) (lld.DiscoveryData, error) {
 	return d, nil
 }
 
+// QueryProfitability is a DoubleItemHandlerFunc for key `nicehash.profitability` which returns the paying price
+// for algo.
+func QueryProfitability(request []string) (float64, error) {
+	// parse third param as uint64
+	algo, err := strconv.ParseUint(request[0], 10, 64)
+	if err != nil {
+		return 0.00, ErrInvalidAlgo
+	}
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-"+request[0]))
+	lock.Lock()
+	defer lock.Unlock()
+	client := nicehash.NewNicehashClient(nil, "", "", "", userAgent)
+	client.SetDebug(debug)
+	stats, err := client.GetStatsGlobalCurrent()
+	if err != nil {
+		return 0.00, err
+	}
+	for _, stat := range stats {
+		if stat.Algo == nicehash.AlgoType(algo) {
+			return stat.Price, nil
+		}
+	}
+	return 0.00, nil
+}
+
 // QueryLowPrice is a DoubleItemHandlerFunc for key `nicehash.lowprice` which returns the lowest price
 // for public orders.
 func QueryLowPrice(request []string) (float64, error) {
@@ -238,6 +263,17 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s discovery APIID APIKEY", os.Args[0])
 		}
+	case "profitability":
+		switch flag.NArg() {
+		case 2:
+			if v, err := QueryProfitability(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s price ALGO", os.Args[0])
+		}
 	case "lowprice":
 		switch flag.NArg() {
 		case 3:
@@ -294,6 +330,6 @@ func main() {
 			log.Fatalf("Usage: %s speedpercent APIID APIKEY ORDERID", os.Args[0])
 		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'lowprice', 'price', 'status', 'btcavail' or 'speedpercent'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'profitability', 'lowprice', 'price', 'status', 'btcavail' or 'speedpercent'.")
 	}
 }
