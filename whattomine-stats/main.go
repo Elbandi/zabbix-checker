@@ -1,15 +1,17 @@
 package main
 
 import (
-	"flag"
-	"log"
-	"os"
-	"net/url"
 	"golang.org/x/net/proxy"
 	"crypto/tls"
-	"io/ioutil"
+	"errors"
+	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"net/url"
+	"os"
+	"strconv"
 )
 
 const defaultUserAgent = "wtm-stats/1.0"
@@ -24,89 +26,68 @@ var (
 // ExchangeRate is a DoubleItemHandlerFunc for key `wtm.exchange_rate` which returns the current exchange rate
 // for coin.
 func ExchangeRate(request []string) (float64, error) {
+	coinId, err := strconv.ParseUint(request[0], 10, 64)
+	if err != nil {
+		return 0.00, errors.New("Invalid coinid format")
+	}
+
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000000, 0, 0)
+	status, err := wtmClient.GetCoin(coinId, 1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
-	if coin, ok := status[request[0]]; ok {
-		return coin.ExchangeRate, nil
-	}
-	return 0.0, nil
+	return status.ExchangeRate, nil
 }
 
 // ExchangeRate24 is a DoubleItemHandlerFunc for key `wtm.exchange_rate24` which returns the day exchange rate
 // for coin.
 func ExchangeRate24(request []string) (float64, error) {
+	coinId, err := strconv.ParseUint(request[0], 10, 64)
+	if err != nil {
+		return 0.00, errors.New("Invalid coinid format")
+	}
+
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000000, 0, 0)
+	status, err := wtmClient.GetCoin(coinId, 1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
-	if coin, ok := status[request[0]]; ok {
-		return coin.ExchangeRate24, nil
-	}
-	return 0.0, nil
+	return status.ExchangeRate24, nil
 }
 
 // EstimatedRewards is a DoubleItemHandlerFunc for key `wtm.estimated_rewards` which returns the current estimated
 // rewards.
 func EstimatedRewards(request []string) (float64, error) {
-	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
-	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000000, 0, 0)
+	coinId, err := strconv.ParseUint(request[0], 10, 64)
 	if err != nil {
-		return 0.00, err
+		return 0.00, errors.New("Invalid coinid format")
 	}
-	if coin, ok := status[request[0]]; ok {
-		return coin.EstimatedRewards, nil
-	}
-	return 0.0, nil
-}
 
-// EstimatedRewards24 is a DoubleItemHandlerFunc for key `wtm.estimated_rewards` which returns the daily estimated
-// rewards.
-func EstimatedRewards24(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000000, 0, 0)
+	status, err := wtmClient.GetCoin(coinId, 1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
-	if coin, ok := status[request[0]]; ok {
-		return coin.EstimatedRewards24, nil
-	}
-	return 0.0, nil
+	return status.EstimatedRewards, nil
 }
 
 // BtcRevenue is a DoubleItemHandlerFunc for key `wtm.btc_revenue` which returns the current possible revenue.
 func BtcRevenue(request []string) (float64, error) {
-	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
-	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000000, 0, 0)
+	coinId, err := strconv.ParseUint(request[0], 10, 64)
 	if err != nil {
-		return 0.00, err
+		return 0.00, errors.New("Invalid coinid format")
 	}
-	if coin, ok := status[request[0]]; ok {
-		return coin.BtcRevenue, nil
-	}
-	return 0.0, nil
-}
 
-// BtcRevenue24 is a DoubleItemHandlerFunc for key `wtm.btc_revenue` which returns the daily possible revenue.
-func BtcRevenue24(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000000, 0, 0)
+	status, err := wtmClient.GetCoin(coinId, 1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
-	if coin, ok := status[request[0]]; ok {
-		return coin.BtcRevenue24, nil
-	}
-	return 0.0, nil
+	return status.BtcRevenue, nil
 }
 
 func main() {
@@ -181,21 +162,6 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s estimated_rewards COIN", os.Args[0])
 		}
-	case "estimated_rewards24":
-		switch flag.NArg() {
-		case 2:
-			if v, err := EstimatedRewards24(flag.Args()[1:]); err != nil {
-				log.Fatalf("Error: %s", err.Error())
-			} else {
-				if output != "" {
-					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
-				} else {
-					fmt.Print(v)
-				}
-			}
-		default:
-			log.Fatalf("Usage: %s estimated_rewards24 COIN", os.Args[0])
-		}
 	case "btc_revenue":
 		switch flag.NArg() {
 		case 2:
@@ -211,26 +177,11 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s btc_revenue COIN", os.Args[0])
 		}
-	case "btc_revenue24":
-		switch flag.NArg() {
-		case 2:
-			if v, err := BtcRevenue24(flag.Args()[1:]); err != nil {
-				log.Fatalf("Error: %s", err.Error())
-			} else {
-				if output != "" {
-					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
-				} else {
-					fmt.Print(v)
-				}
-			}
-		default:
-			log.Fatalf("Usage: %s btc_revenue24 COIN", os.Args[0])
-		}
 	default:
 		log.Fatal("You must specify one of the following action: " +
 		//			"'discovery', " +
-			"'exchange_rate', 'exchange_rate24', 'estimated_rewards', 'estimated_rewards24', " +
-			"'btc_revenue' or 'btc_revenue24'.")
+			"'exchange_rate', 'exchange_rate24', " +
+			"'estimated_rewards' or 'btc_revenue'.")
 
 	}
 

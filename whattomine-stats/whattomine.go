@@ -3,11 +3,12 @@ package main
 import (
 	"github.com/dghubble/sling"
 	"crypto/tls"
+	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httputil"
-	"log"
 	"strings"
-	"encoding/json"
+	"strconv"
 	"time"
 )
 
@@ -179,4 +180,10 @@ func (client *WhatToMineClient) GetCoins(hashRate, power, poolFee float64) (Coin
 		return nil, err
 	}
 	return response.Coins, nil
+}
+
+func (client *WhatToMineClient) GetCoin(id uint64, hashRate, power, poolFee float64) (coin Coin, err error) {
+	req := &coinsRequest{HashRate: hashRate, Power: power, PoolFee: poolFee}
+	_, err = client.sling.New().Get("coins/" + strconv.FormatUint(id, 10) + ".json").QueryStruct(req).ReceiveSuccess(&coin)
+	return
 }
