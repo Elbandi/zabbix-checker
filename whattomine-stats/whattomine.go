@@ -145,8 +145,9 @@ func (t *Coin) UnmarshalJSON(data []byte) error {
 	var err error
 	type Alias Coin
 	aux := &struct {
-		BlockTime json.Number `json:"block_time"`
-		Timestamp int64       `json:"timestamp"`
+		BlockTime        json.Number `json:"block_time"`
+		EstimatedRewards string      `json:"estimated_rewards"`
+		Timestamp        int64       `json:"timestamp"`
 		*Alias
 	}{
 		Alias: (*Alias)(t),
@@ -155,6 +156,10 @@ func (t *Coin) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	t.Timestamp = time.Unix(aux.Timestamp, 0)
+	t.EstimatedRewards, err = strconv.ParseFloat(strings.Replace(aux.EstimatedRewards, ",", "", -1), 64)
+	if err != nil {
+		return err
+	}
 	t.BlockTime, err = aux.BlockTime.Float64()
 	return err
 }
