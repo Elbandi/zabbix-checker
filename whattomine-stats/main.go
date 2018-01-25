@@ -26,7 +26,7 @@ var (
 func ExchangeRate(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000, 0, 0)
+	status, err := wtmClient.GetCoins(1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
@@ -41,7 +41,7 @@ func ExchangeRate(request []string) (float64, error) {
 func ExchangeRate24(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000, 0, 0)
+	status, err := wtmClient.GetCoins(1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
@@ -56,7 +56,7 @@ func ExchangeRate24(request []string) (float64, error) {
 func EstimatedRewards(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000, 0, 0)
+	status, err := wtmClient.GetCoins(1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
@@ -71,7 +71,7 @@ func EstimatedRewards(request []string) (float64, error) {
 func EstimatedRewards24(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000, 0, 0)
+	status, err := wtmClient.GetCoins(1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
@@ -85,7 +85,7 @@ func EstimatedRewards24(request []string) (float64, error) {
 func BtcRevenue(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000, 0, 0)
+	status, err := wtmClient.GetCoins(1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
@@ -99,7 +99,7 @@ func BtcRevenue(request []string) (float64, error) {
 func BtcRevenue24(request []string) (float64, error) {
 	wtmClient := NewWhatToMineClient(nil, BASE, userAgent)
 	wtmClient.SetDebug(debug)
-	status, err := wtmClient.GetCoins(1000, 0, 0)
+	status, err := wtmClient.GetCoins(1000000, 0, 0)
 	if err != nil {
 		return 0.00, err
 	}
