@@ -22,13 +22,13 @@ const defaultUserAgent = "nicehash-checker/1.0"
 
 var (
 	// Errors
-	ErrInvalidOrderId = errors.New("Invalid orderid format")
-	ErrInvalidAlgo = errors.New("Invalid algo format")
+	ErrInvalidOrderId  = errors.New("Invalid orderid format")
+	ErrInvalidAlgo     = errors.New("Invalid algo format")
 	ErrInvalidLocation = errors.New("Invalid location format")
-	ErrOrderNotFound = errors.New("Order not found")
+	ErrOrderNotFound   = errors.New("Order not found")
 
 	// flags
-	debug bool
+	debug     bool
 	userAgent string
 )
 
@@ -46,7 +46,7 @@ func FindOrder(id uint64, orders []nicehash.MyOrders) *nicehash.MyOrders {
 func DiscoverOrders(request []string) (lld.DiscoveryData, error) {
 	// init discovery data
 	d := make(lld.DiscoveryData, 0)
-	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-"+request[0]))
 	lock.Lock()
 	defer lock.Unlock()
 	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
@@ -80,7 +80,7 @@ func QueryLowPrice(request []string) (float64, error) {
 	if err != nil {
 		return 0.00, ErrInvalidLocation
 	}
-	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-"+request[0]))
 	lock.Lock()
 	defer lock.Unlock()
 	client := nicehash.NewNicehashClient(nil, "", "", "", userAgent)
@@ -106,7 +106,7 @@ func QueryPrice(request []string) (float64, error) {
 	if err != nil {
 		return 0.00, ErrInvalidOrderId
 	}
-	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-"+request[0]))
 	lock.Lock()
 	defer lock.Unlock()
 	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
@@ -130,7 +130,7 @@ func QueryBtcAvail(request []string) (float64, error) {
 	if err != nil {
 		return 0.00, ErrInvalidOrderId
 	}
-	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-"+request[0]))
 	lock.Lock()
 	defer lock.Unlock()
 	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
@@ -154,7 +154,7 @@ func QueryStatus(request []string) (string, error) {
 	if err != nil {
 		return "na", ErrInvalidOrderId
 	}
-	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-"+request[0]))
 	lock.Lock()
 	defer lock.Unlock()
 	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
@@ -181,7 +181,7 @@ func QuerySpeed(request []string) (float64, error) {
 	if err != nil {
 		return 0.00, ErrInvalidOrderId
 	}
-	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
+	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-"+request[0]))
 	lock.Lock()
 	defer lock.Unlock()
 	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
