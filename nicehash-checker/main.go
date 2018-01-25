@@ -49,7 +49,7 @@ func DiscoverOrders(request []string) (lld.DiscoveryData, error) {
 	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
 	lock.Lock()
 	defer lock.Unlock()
-	client := nicehash.NewNicehashClient(nil, request[0], request[1], userAgent)
+	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
 	client.SetDebug(debug)
 	orders, err := client.GetMyOrders(0, 0)
 	if err != nil {
@@ -83,7 +83,7 @@ func QueryLowPrice(request []string) (float64, error) {
 	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
 	lock.Lock()
 	defer lock.Unlock()
-	client := nicehash.NewNicehashClient(nil, "", "", userAgent)
+	client := nicehash.NewNicehashClient(nil, "", "", "", userAgent)
 	client.SetDebug(debug)
 	orders, err := client.GetOrders(nicehash.AlgoType(algo), nicehash.Location(location))
 	if err != nil {
@@ -109,7 +109,7 @@ func QueryPrice(request []string) (float64, error) {
 	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
 	lock.Lock()
 	defer lock.Unlock()
-	client := nicehash.NewNicehashClient(nil, request[0], request[1], userAgent)
+	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
 	client.SetDebug(debug)
 	orders, err := client.GetMyOrders(0, 0)
 	if err != nil {
@@ -133,7 +133,7 @@ func QueryBtcAvail(request []string) (float64, error) {
 	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
 	lock.Lock()
 	defer lock.Unlock()
-	client := nicehash.NewNicehashClient(nil, request[0], request[1], userAgent)
+	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
 	client.SetDebug(debug)
 	orders, err := client.GetMyOrders(0, 0)
 	if err != nil {
@@ -157,7 +157,7 @@ func QueryStatus(request []string) (string, error) {
 	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
 	lock.Lock()
 	defer lock.Unlock()
-	client := nicehash.NewNicehashClient(nil, request[0], request[1], userAgent)
+	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
 	client.SetDebug(debug)
 	orders, err := client.GetMyOrders(0, 0)
 	if err != nil {
@@ -184,7 +184,7 @@ func QuerySpeed(request []string) (float64, error) {
 	lock := filemutex.MakeFileMutex(filepath.Join(os.TempDir(), "nicehash-" + request[0]))
 	lock.Lock()
 	defer lock.Unlock()
-	client := nicehash.NewNicehashClient(nil, request[0], request[1], userAgent)
+	client := nicehash.NewNicehashClient(nil, "", request[0], request[1], userAgent)
 	client.SetDebug(debug)
 	orders, err := client.GetMyOrders(0, 0)
 	if err != nil {
