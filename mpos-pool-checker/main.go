@@ -69,16 +69,16 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 	return d, nil
 }
 
-// PoolHashrate is a DoubleItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
+// PoolHashrate is a Uint64ItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
 // counter.
-func PoolHashrate(request []string) (float64, error) {
+func PoolHashrate(request []string) (uint64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
-		return 0.00, err
+		return 0, err
 	}
-	return status.Hashrate, nil
+	return uint64(status.Hashrate * 1000), nil
 }
 
 // PoolWorker is a Uint32ItemHandlerFunc for key `mpos.pool_workers` which returns the pool workers
@@ -130,16 +130,16 @@ func PoolNextBlock(request []string) (uint32, error) {
 }
 
 
-// UserHashrate is a DoubleItemHandlerFunc for key `mpos.user_hashrate` which returns the user hashrate
+// UserHashrate is a Uint64ItemHandlerFunc for key `mpos.user_hashrate` which returns the user hashrate
 // counter.
-func UserHashrate(request []string) (float64, error) {
+func UserHashrate(request []string) (uint64, error) {
 	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
-		return 0.00, err
+		return 0, err
 	}
-	return status.Hashrate, nil
+	return uint64(status.Hashrate * 1000), nil
 }
 
 // UserSharerate is a DoubleItemHandlerFunc for key `mpos.user_sharerate` which returns the user sharerate
