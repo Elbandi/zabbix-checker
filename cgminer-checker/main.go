@@ -182,6 +182,18 @@ func Status(request []string) (string, error) {
 	return dev.Status, nil
 }
 
+// Enabled is a Uint64ItemHandlerFunc for key `cgminer.enabled` which returns the device active.
+func Enabled(request []string) (uint64, error) {
+	dev, err := QueryDevice(request)
+	if err != nil {
+		return 0, err
+	}
+	if dev.Enabled == "Y" {
+		return 1, nil
+	}
+	return 0, nil
+}
+
 // AcceptedShares is a DoubleItemHandlerFunc for key `cgminer.accept_shares` which returns the accepted shares
 // counter.
 func AcceptedShares(request []string) (float64, error) {
@@ -285,6 +297,17 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s status PORT DEVICEID", os.Args[0])
 		}
+	case "enabled":
+		switch flag.NArg() {
+		case 3:
+			if v, err := Enabled(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s enabled PORT DEVICEID", os.Args[0])
+		}
 	case "accept_shares":
 		switch flag.NArg() {
 		case 3:
@@ -363,6 +386,6 @@ func main() {
 			log.Fatalf("Usage: %s temperature PORT DEVICEID", os.Args[0])
 		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'status', 'accept_shares', 'frequency', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'status', 'enabled', 'accept_shares', 'frequency', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
 	}
 }
