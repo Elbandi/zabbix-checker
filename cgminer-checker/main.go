@@ -173,6 +173,15 @@ func DiscoverDevs(args ...interface{}) interface{} {
 	return d
 }
 
+// Status is a StringItemHandlerFunc for key `cgminer.status` which returns the device status.
+func Status(request []string) (string, error) {
+	dev, err := QueryDevice(request)
+	if err != nil {
+		return "NA", err
+	}
+	return dev.Status, nil
+}
+
 // AcceptedShares is a DoubleItemHandlerFunc for key `cgminer.accept_shares` which returns the accepted shares
 // counter.
 func AcceptedShares(request []string) (float64, error) {
@@ -265,6 +274,17 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s discovery", os.Args[0])
 		}
+	case "status":
+		switch flag.NArg() {
+		case 3:
+			if v, err := Status(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s status PORT DEVICEID", os.Args[0])
+		}
 	case "accept_shares":
 		switch flag.NArg() {
 		case 3:
@@ -343,6 +363,6 @@ func main() {
 			log.Fatalf("Usage: %s temperature PORT DEVICEID", os.Args[0])
 		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'accept_shares', 'frequency', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'status', 'accept_shares', 'frequency', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
 	}
 }
