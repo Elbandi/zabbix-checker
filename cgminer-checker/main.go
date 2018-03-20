@@ -32,6 +32,7 @@ var (
 		IP:   net.IPv4(0, 0, 0, 0),
 		Port: mCastReport,
 	}
+	debug bool
 )
 
 // var omitNewline = flag.Bool("n", false, "don't print final newline")
@@ -46,7 +47,7 @@ func QueryDevice(request []string) (*cgminer.Devs, error) {
 	if err != nil {
 		return nil, errors.New("Invalid deviceid format")
 	}
-	miner := cgminer.New(localAddr, port)
+	miner := cgminer.NewDebug(localAddr, port, debug)
 	devices, err := miner.Devs()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to connect to CGMiner: %s", err.Error())
@@ -74,8 +75,14 @@ func sendDiscoveryMsg(port int) {
 		return
 	}
 	msg := fmt.Sprintf("cgminer-FTW-%d", port)
+	if debug {
+		log.Printf("Send %s -> %s: %s\n", c.LocalAddr().String(), c.RemoteAddr().String(), msg)
+	}
 	c.Write([]byte(msg))
 	msg = fmt.Sprintf("sgminer-FTW-%d", port)
+	if debug {
+		log.Printf("Send %s -> %s: %s\n", c.LocalAddr().String(), c.RemoteAddr().String(), msg)
+	}
 	c.Write([]byte(msg))
 }
 
@@ -117,6 +124,9 @@ func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
 		if err != nil {
 			break
 		}
+		if debug {
+			log.Printf("Received %d bytes from %s: %s\n", n, addr.String(), string(b[:n]))
+		}
 		if !isMyAddress(addr.IP) {
 			continue
 		}
@@ -155,7 +165,7 @@ func DiscoverDevs(args ...interface{}) interface{} {
 	// init discovery data
 	d := make(lld.DiscoveryData, 0)
 
-	miner := cgminer.New(localAddr, port)
+	miner := cgminer.NewDebug(localAddr, port, debug)
 	devices, err := miner.Devs()
 	if err != nil {
 		panic(err)
@@ -271,6 +281,7 @@ func Temperature(request []string) (float64, error) {
 
 
 func main() {
+	flag.BoolVar(&debug, "debug", false, "enable debug mode")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
