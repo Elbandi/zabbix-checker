@@ -62,6 +62,9 @@ func main() {
 		if !info.IsDir() {
 			return nil
 		}
+		if _, err := os.Stat(path + "/.nosync"); !os.IsNotExist(err) {
+			return nil
+		}
 		if strings.HasSuffix(path, *searchSuffixPtr) {
 			name := strings.TrimSuffix(filepath.Base(path), *searchSuffixPtr)
 			if stringInSlice(name, excludesearch) {
