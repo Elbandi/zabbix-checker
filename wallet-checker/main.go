@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Elbandi/zabbix-checker/common/lld"
-	"github.com/btcsuite/btcrpcclient"
+	"github.com/btcsuite/btcd/rpcclient"
 	"gopkg.in/ini.v1"
 	"flag"
 	"fmt"
@@ -98,7 +98,7 @@ func main() {
 			log.Print(err)
 			continue
 		}
-		connCfg := &btcrpcclient.ConnConfig{
+		connCfg := &rpcclient.ConnConfig{
 			Host:         config.Hostname + ":" + strconv.Itoa(config.Port),
 			User:         config.Username,
 			Pass:         config.Password,
@@ -107,7 +107,7 @@ func main() {
 		}
 		// Notice the notification parameter is nil since notifications are
 		// not supported in HTTP POST mode.
-		client, err := btcrpcclient.New(connCfg, nil)
+		client, err := rpcclient.New(connCfg, nil)
 		if err != nil {
 			log.Print(err)
 			continue
