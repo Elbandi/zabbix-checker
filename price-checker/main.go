@@ -18,7 +18,7 @@ func GetPrice(request []string) (float64, error) {
 	database := session.DB(request[1])
 	match := bson.M{"coin": request[3], "base": request[4]}
 	if len(request) > 5 {
-		match["exchange"] = bson.M{"$nin": strings.Split(request[5], ",")}
+		match["exchange"] = bson.M{"$nin": strings.Split(request[5], "+")}
 	}
 	pipeline := []bson.M{
 		{"$match": match },
