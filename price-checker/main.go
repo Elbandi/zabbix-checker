@@ -22,10 +22,10 @@ func GetPrice(request []string) (float64, error) {
 	}
 	pipeline := []bson.M{
 		{"$match": match },
-		{"$group": bson.M{"_id": "$exchange", "lastDate" : bson.M{"$last" : "$date" }, "price" : bson.M{"$last" : "$price" }, "volume" : bson.M{"$last" : "$volume" } } },
-		{"$project": bson.M{"_id": 0, "exchange": "$_id", "buy": "$price.buy", "volume": "$volume.coin", "basevolume": "$volume.base" } },
-		{"$sort": bson.M{"volume" : -1 } },
-		{"$limit": 1 },
+		{"$group": bson.M{"_id": "$exchange", "lastDate": bson.M{"$last": "$date"}, "price": bson.M{"$last": "$price"}, "volume": bson.M{"$last": "$volume"}}},
+		{"$project": bson.M{"_id": 0, "exchange": "$_id", "buy": "$price.buy", "volume": "$volume.coin", "basevolume": "$volume.base"}},
+		{"$sort": bson.M{"volume": -1}},
+		{"$limit": 1},
 	}
 	pipe := database.C(request[2]).Pipe(pipeline);
 	var resp []bson.M
