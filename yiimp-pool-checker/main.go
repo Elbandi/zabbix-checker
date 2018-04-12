@@ -88,7 +88,7 @@ func PoolHashrate(request []string) (uint64, error) {
 	if !ok {
 		return 0.00, ErrAlgoNotFound
 	}
-	return algo.Hashrate, nil
+	return uint64(algo.Hashrate), nil
 }
 
 // PoolWorker is a Uint32ItemHandlerFunc for key `yiimp.pool_workers` which returns the pool workers
@@ -171,19 +171,19 @@ func PoolRentalCurrent(request []string) (float64, error) {
 	return algo.RentalCurrent, nil
 }
 
-// UserHashrate is a DoubleItemHandlerFunc for key `yiimp.user_hashrate` which returns the user hashrate
+// UserHashrate is a Uint64ItemHandlerFunc for key `yiimp.user_hashrate` which returns the user hashrate
 // counter.
-func UserHashrate(request []string) (float64, error) {
+func UserHashrate(request []string) (uint64, error) {
 	mposClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetWalletEx(request[1])
 	if err != nil {
-		return 0.00, err
+		return 0, err
 	}
-	var hashrate float64 = 0.00
+	var hashrate uint64 = 0
 	for _, miner := range status.Miners {
 		if miner.Algo == request[2] {
-			hashrate += miner.Accepted
+			hashrate += uint64(miner.Accepted)
 		}
 	}
 	return hashrate, nil
