@@ -107,7 +107,7 @@ func PoolWorkers(request []string) (uint16, error) {
 	return algo.Workers, nil
 }
 
-// PoolEstimateCurrent is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool estimate current
+// PoolEstimateCurrent is a DoubleItemHandlerFunc for key `yiimp.pool_estimate_current` which returns the pool estimate current
 // price value.
 func PoolEstimateCurrent(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
@@ -123,7 +123,7 @@ func PoolEstimateCurrent(request []string) (float64, error) {
 	return algo.EstimateCurrent, nil
 }
 
-// PoolEstimateLast24h is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool estimate last 24h
+// PoolEstimateLast24h is a DoubleItemHandlerFunc for key `yiimp.pool_estimate_last24h` which returns the pool estimate last 24h
 // price value.
 func PoolEstimateLast24h(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
@@ -139,7 +139,7 @@ func PoolEstimateLast24h(request []string) (float64, error) {
 	return algo.EstimateLast24h, nil
 }
 
-// PoolActualLast24h is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool estimate last 24h
+// PoolActualLast24h is a DoubleItemHandlerFunc for key `yiimp.pool_actual_last24h` which returns the pool actual last 24h
 // price value.
 func PoolActualLast24h(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
@@ -155,7 +155,7 @@ func PoolActualLast24h(request []string) (float64, error) {
 	return algo.ActualLast24h, nil
 }
 
-// PoolRentalCurrent is a DoubleItemHandlerFunc for key `yiimp.pool_hashrate` which returns the pool current rental
+// PoolRentalCurrent is a DoubleItemHandlerFunc for key `yiimp.pool_rental` which returns the pool current rental
 // price value.
 func PoolRentalCurrent(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
