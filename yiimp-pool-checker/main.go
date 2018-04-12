@@ -16,9 +16,13 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-const userAgent = "yiimp-pool-checker/1.0"
+const defaultUserAgent = "yiimp-pool-checker/1.0"
 
-var debugPtr *bool
+var (
+	// flags
+	debug     bool
+	userAgent string
+)
 
 // DiscoverPools is a DiscoveryItemHandlerFunc for key `yiimp.discovery` which returns JSON
 // encoded discovery data for pool stored in a file
@@ -69,7 +73,7 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 // counter.
 func PoolHashrate(request []string) (uint64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
-	yiimpClient.SetDebug(*debugPtr)
+	yiimpClient.SetDebug(debug)
 	status, err := yiimpClient.GetStatus()
 	if err != nil {
 		return 0.00, err
@@ -85,7 +89,7 @@ func PoolHashrate(request []string) (uint64, error) {
 // counter.
 func PoolWorkers(request []string) (uint16, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
-	yiimpClient.SetDebug(*debugPtr)
+	yiimpClient.SetDebug(debug)
 	status, err := yiimpClient.GetStatus()
 	if err != nil {
 		return 0, err
@@ -101,7 +105,7 @@ func PoolWorkers(request []string) (uint16, error) {
 // price value.
 func PoolEstimateCurrent(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
-	yiimpClient.SetDebug(*debugPtr)
+	yiimpClient.SetDebug(debug)
 	status, err := yiimpClient.GetStatus()
 	if err != nil {
 		return 0.00, err
@@ -117,7 +121,7 @@ func PoolEstimateCurrent(request []string) (float64, error) {
 // price value.
 func PoolEstimateLast24h(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
-	yiimpClient.SetDebug(*debugPtr)
+	yiimpClient.SetDebug(debug)
 	status, err := yiimpClient.GetStatus()
 	if err != nil {
 		return 0.00, err
@@ -133,7 +137,7 @@ func PoolEstimateLast24h(request []string) (float64, error) {
 // price value.
 func PoolActualLast24h(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
-	yiimpClient.SetDebug(*debugPtr)
+	yiimpClient.SetDebug(debug)
 	status, err := yiimpClient.GetStatus()
 	if err != nil {
 		return 0.00, err
@@ -149,7 +153,7 @@ func PoolActualLast24h(request []string) (float64, error) {
 // price value.
 func PoolRentalCurrent(request []string) (float64, error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
-	yiimpClient.SetDebug(*debugPtr)
+	yiimpClient.SetDebug(debug)
 	status, err := yiimpClient.GetStatus()
 	if err != nil {
 		return 0.00, err
@@ -165,7 +169,7 @@ func PoolRentalCurrent(request []string) (float64, error) {
 // counter.
 func UserHashrate(request []string) (float64, error) {
 	mposClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
-	mposClient.SetDebug(*debugPtr)
+	mposClient.SetDebug(debug)
 	status, err := mposClient.GetWalletEx(request[1])
 	if err != nil {
 		return 0.00, err
@@ -181,7 +185,8 @@ func UserHashrate(request []string) (float64, error) {
 
 func main() {
 	proxyPtr := flag.String("proxy", "", "socks proxy")
-	debugPtr = flag.Bool("debug", false, "enable request/response dump")
+	flag.BoolVar(&debug, "debug", false, "enable request/response dump")
+	flag.StringVar(&userAgent, "user-agent", defaultUserAgent, "http client user agent")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
