@@ -41,6 +41,9 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 		if len(fields) != 6 {
 			continue
 		}
+		if strings.TrimSpace(fields[1]) != "YIIMP" {
+			continue
+		}
 		item := make(lld.DiscoveryItem, 0)
 		item["NAME"] = strings.TrimSpace(fields[0])
 		item["TYPE"] = strings.TrimSpace(fields[1])
