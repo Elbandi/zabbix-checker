@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -21,6 +22,7 @@ const defaultUserAgent = "yiimp-pool-checker/1.0"
 var (
 	// flags
 	debug     bool
+	output    string
 	userAgent string
 )
 
@@ -186,6 +188,7 @@ func UserHashrate(request []string) (float64, error) {
 func main() {
 	proxyPtr := flag.String("proxy", "", "socks proxy")
 	flag.BoolVar(&debug, "debug", false, "enable request/response dump")
+	flag.StringVar(&output, "output", "", "output the result to file")
 	flag.StringVar(&userAgent, "user-agent", defaultUserAgent, "http client user agent")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
@@ -215,7 +218,11 @@ func main() {
 			if v, err := DiscoverPools(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v.Json())
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v.Json())), 0644)
+				} else {
+					fmt.Print(v.Json())
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s discovery PATH", os.Args[0])
@@ -226,7 +233,11 @@ func main() {
 			if v, err := PoolHashrate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_hashrate URL ALGORITHM", os.Args[0])
@@ -237,7 +248,11 @@ func main() {
 			if v, err := PoolWorkers(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s pool_workers URL ALGORITHM", os.Args[0])
@@ -248,7 +263,11 @@ func main() {
 			if v, err := PoolEstimateCurrent(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s estimate_current URL ALGORITHM", os.Args[0])
@@ -259,7 +278,11 @@ func main() {
 			if v, err := PoolEstimateLast24h(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s estimate_last24h URL ALGORITHM", os.Args[0])
@@ -270,7 +293,11 @@ func main() {
 			if v, err := PoolActualLast24h(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s actual_last24h URL ALGORITHM", os.Args[0])
@@ -281,7 +308,11 @@ func main() {
 			if v, err := PoolRentalCurrent(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s rental_current URL APIKEY", os.Args[0])
@@ -292,7 +323,11 @@ func main() {
 			if v, err := UserHashrate(flag.Args()[1:]); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			} else {
-				fmt.Print(v)
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
 			}
 		default:
 			log.Fatalf("Usage: %s user_hashrate URL ADDRESS ALGORITHM", os.Args[0])
