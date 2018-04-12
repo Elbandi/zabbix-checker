@@ -185,15 +185,10 @@ func UserHashrate(request []string) (uint64, error) {
 		return 0, ErrPoolNotFound
 	}
 	var hashrate float64 = 0
-	ok = false
 	for idx, worker := range pool.Workers {
 		if strings.HasPrefix(idx, request[2]) {
 			hashrate += worker.Hashrate
-			ok = true
 		}
-	}
-	if !ok {
-		return 0, ErrWorkerNotFound
 	}
 	return uint64(hashrate), nil
 }
@@ -212,15 +207,10 @@ func UserSharesValid(request []string) (float64, error) {
 		return 0.00, ErrPoolNotFound
 	}
 	var shares float64 = 0
-	ok = false
 	for idx, worker := range pool.Workers {
 		if strings.HasPrefix(idx, request[2]) {
 			shares += worker.Shares
-			ok = true
 		}
-	}
-	if !ok {
-		return 0.00, ErrWorkerNotFound
 	}
 	return shares, nil
 }
@@ -239,15 +229,10 @@ func UserSharesInvalid(request []string) (float64, error) {
 		return 0.00, ErrPoolNotFound
 	}
 	var invalidshares float64 = 0
-	ok = false
 	for idx, worker := range pool.Workers {
 		if strings.HasPrefix(idx, request[2]) {
 			invalidshares += worker.InvalidShares
-			ok = true
 		}
-	}
-	if !ok {
-		return 0.00, ErrWorkerNotFound
 	}
 	return invalidshares, nil
 }
