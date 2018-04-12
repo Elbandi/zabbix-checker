@@ -20,6 +20,10 @@ import (
 const defaultUserAgent = "yiimp-pool-checker/1.0"
 
 var (
+	// Errors
+	ErrAlgoNotFound   = errors.New("no such algorithm")
+	ErrWorkerNotFound = errors.New("Worker not found")
+
 	// flags
 	debug     bool
 	output    string
@@ -82,7 +86,7 @@ func PoolHashrate(request []string) (uint64, error) {
 	}
 	algo, ok := status[request[1]]
 	if !ok {
-		return 0.00, errors.New("no such algorithm")
+		return 0.00, ErrAlgoNotFound
 	}
 	return algo.Hashrate, nil
 }
@@ -98,7 +102,7 @@ func PoolWorkers(request []string) (uint16, error) {
 	}
 	algo, ok := status[request[1]]
 	if !ok {
-		return 0.00, errors.New("no such algorithm")
+		return 0.00, ErrAlgoNotFound
 	}
 	return algo.Workers, nil
 }
@@ -114,7 +118,7 @@ func PoolEstimateCurrent(request []string) (float64, error) {
 	}
 	algo, ok := status[request[1]]
 	if !ok {
-		return 0.00, errors.New("no such algorithm")
+		return 0.00, ErrAlgoNotFound
 	}
 	return algo.EstimateCurrent, nil
 }
@@ -130,7 +134,7 @@ func PoolEstimateLast24h(request []string) (float64, error) {
 	}
 	algo, ok := status[request[1]]
 	if !ok {
-		return 0.00, errors.New("no such algorithm")
+		return 0.00, ErrAlgoNotFound
 	}
 	return algo.EstimateLast24h, nil
 }
@@ -146,7 +150,7 @@ func PoolActualLast24h(request []string) (float64, error) {
 	}
 	algo, ok := status[request[1]]
 	if !ok {
-		return 0.00, errors.New("no such algorithm")
+		return 0.00, ErrAlgoNotFound
 	}
 	return algo.ActualLast24h, nil
 }
@@ -162,7 +166,7 @@ func PoolRentalCurrent(request []string) (float64, error) {
 	}
 	algo, ok := status[request[1]]
 	if !ok {
-		return 0.00, errors.New("no such algorithm")
+		return 0.00, ErrAlgoNotFound
 	}
 	return algo.RentalCurrent, nil
 }
