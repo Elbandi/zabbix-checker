@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"os"
 	"github.com/bitbandi/go-mpos-api"
@@ -69,10 +70,23 @@ func DiscoverPools(request []string) (lld.DiscoveryData, error) {
 	return d, nil
 }
 
+func splitApiKey(key string) (string, uint64, error) {
+	if !strings.Contains(key, "_") {
+		return key, 0, nil
+	}
+	keyArray := strings.SplitN(key, "_", 2)
+	userId, err := strconv.ParseUint(keyArray[1], 10, 64)
+	return keyArray[0], userId, err
+}
+
 // PoolHashrate is a Uint64ItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
 // counter.
 func PoolHashrate(request []string) (uint64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
@@ -84,7 +98,11 @@ func PoolHashrate(request []string) (uint64, error) {
 // PoolWorker is a Uint32ItemHandlerFunc for key `mpos.pool_workers` which returns the pool workers
 // counter.
 func PoolWorkers(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
@@ -96,7 +114,11 @@ func PoolWorkers(request []string) (uint32, error) {
 // PoolEfficiency is a DoubleItemHandlerFunc for key `mpos.pool_efficiency` which returns the pool efficiency
 // ratio.
 func PoolEfficiency(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
@@ -108,7 +130,11 @@ func PoolEfficiency(request []string) (float64, error) {
 // PoolLastBlock is a Uint32ItemHandlerFunc for key `mpos.pool_lastblock` which returns the pool last block
 // height.
 func PoolLastBlock(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
@@ -120,7 +146,11 @@ func PoolLastBlock(request []string) (uint32, error) {
 // PoolLastBlock is a Uint32ItemHandlerFunc for key `mpos.pool_nextblock` which returns the pool next block
 // height.
 func PoolNextBlock(request []string) (uint32, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetPoolStatus()
 	if err != nil {
@@ -129,11 +159,14 @@ func PoolNextBlock(request []string) (uint32, error) {
 	return status.NextNetworkBlock, nil
 }
 
-
 // UserHashrate is a Uint64ItemHandlerFunc for key `mpos.user_hashrate` which returns the user hashrate
 // counter.
 func UserHashrate(request []string) (uint64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
@@ -145,7 +178,11 @@ func UserHashrate(request []string) (uint64, error) {
 // UserSharerate is a DoubleItemHandlerFunc for key `mpos.user_sharerate` which returns the user sharerate
 // counter.
 func UserSharerate(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
@@ -157,7 +194,11 @@ func UserSharerate(request []string) (float64, error) {
 // UserSharesValid is a DoubleItemHandlerFunc for key `mpos.user_shares_valid` which returns the user valid
 // shares.
 func UserSharesValid(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
@@ -169,7 +210,11 @@ func UserSharesValid(request []string) (float64, error) {
 // UserSharesInvalid is a DoubleItemHandlerFunc for key `mpos.user_shares_invalid` which returns the user invalid
 // shares.
 func UserSharesInvalid(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserStatus()
 	if err != nil {
@@ -181,7 +226,11 @@ func UserSharesInvalid(request []string) (float64, error) {
 // UserBalanceConfirmed is a DoubleItemHandlerFunc for key `mpos.user_balance_confirmed` which returns the user
 // confirmed balance.
 func UserBalanceConfirmed(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
@@ -193,7 +242,11 @@ func UserBalanceConfirmed(request []string) (float64, error) {
 // UserBalanceConfirmed is a DoubleItemHandlerFunc for key `mpos.user_balance_unconfirmed` which returns the user
 // unconfirmed balance.
 func UserBalanceUnconfirmed(request []string) (float64, error) {
-	mposClient := mpos.NewMposClient(nil, request[0], request[1], userAgent)
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return 0, err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	status, err := mposClient.GetUserBalance()
 	if err != nil {
