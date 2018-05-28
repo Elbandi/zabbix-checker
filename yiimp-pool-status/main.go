@@ -73,7 +73,10 @@ func main() {
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.workers[%s]\" \"%d\"\n", hostname, poolkey, element["ALGO"], status[key].Workers)
 		btcmhday := status[key].ActualLast24h / 1e3 // float64(algo_mBTC_factor(key))
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.btcmhday[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btcmhday)
-		factor := algo_mBTC_factor(key)
+		factor := status[key].UnitFactor
+		if factor == 0 {
+			factor = algo_mBTC_factor(key)
+		}
 		btctotal := status[key].Hashrate24h * status[key].ActualLast24h / factor / 1e9
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.btctotal[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btctotal)
 
