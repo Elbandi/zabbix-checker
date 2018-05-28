@@ -18,6 +18,7 @@ func algo_mBTC_factor(algo string) (float64) {
 	case "sha256":
 		return 1e9;
 	case "x11",
+		"x13",
 		"qubit",
 		"quark",
 		"scrypt",
