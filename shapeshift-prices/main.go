@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 )
 
 // Check is a Uint64ItemHandlerFunc for key `shapeshift.check` which returns the availability status
@@ -18,7 +19,7 @@ func Check(request []string) (uint64, error) {
 		return 0, err
 	}
 	value := reflect.ValueOf(s)
-	field := reflect.Indirect(value).FieldByName(request[0])
+	field := reflect.Indirect(value).FieldByName(strings.ToUpper(request[0]))
 	if !field.IsValid() {
 		return 0, errors.New("invalid coin")
 	}
