@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -22,9 +23,10 @@ var (
 	Port int
 	Username string
 	Password string
+	CertFile string
 )
 
-func GetDifficulty(request []string) (float64, error) {
+func newRpcClient() (*rpcclient.Client, error) {
 	connCfg := &rpcclient.ConnConfig{
 		Host:         Hostname + ":" + strconv.Itoa(Port),
 		User:         Username,
@@ -32,9 +34,21 @@ func GetDifficulty(request []string) (float64, error) {
 		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
 		DisableTLS:   true, // Bitcoin core does not provide TLS by default
 	}
+	if len(CertFile) > 0 {
+		content, err := ioutil.ReadFile(CertFile)
+		if err != nil {
+			return nil, err
+		}
+		connCfg.Certificates = content
+		connCfg.DisableTLS = false
+	}
 	// Notice the notification parameter is nil since notifications are
 	// not supported in HTTP POST mode.
-	client, err := rpcclient.New(connCfg, nil)
+	return rpcclient.New(connCfg, nil)
+}
+
+func GetDifficulty(request []string) (float64, error) {
+	client, err := newRpcClient()
 	if err != nil {
 		return 0, err
 	}
@@ -71,16 +85,7 @@ func GetDifficulty(request []string) (float64, error) {
 }
 
 func GetNetworkHashPS(request []string) (uint64, error) {
-	connCfg := &rpcclient.ConnConfig{
-		Host:         Hostname + ":" + strconv.Itoa(Port),
-		User:         Username,
-		Pass:         Password,
-		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core does not provide TLS by default
-	}
-	// Notice the notification parameter is nil since notifications are
-	// not supported in HTTP POST mode.
-	client, err := rpcclient.New(connCfg, nil)
+	client, err := newRpcClient()
 	if err != nil {
 		return 0, err
 	}
@@ -115,16 +120,7 @@ func GetNetworkHashPS(request []string) (uint64, error) {
 }
 
 func GetLastRecipient(request []string) (string, error) {
-	connCfg := &rpcclient.ConnConfig{
-		Host:         Hostname + ":" + strconv.Itoa(Port),
-		User:         Username,
-		Pass:         Password,
-		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core does not provide TLS by default
-	}
-	// Notice the notification parameter is nil since notifications are
-	// not supported in HTTP POST mode.
-	client, err := rpcclient.New(connCfg, nil)
+	client, err := newRpcClient()
 	if err != nil {
 		return "", err
 	}
@@ -178,16 +174,7 @@ func GetLastMinedHeight(request []string) (int64, error) {
 			return 0, errors.New("Invalid transactions count format")
 		}
 	}
-	connCfg := &rpcclient.ConnConfig{
-		Host:         Hostname + ":" + strconv.Itoa(Port),
-		User:         Username,
-		Pass:         Password,
-		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core does not provide TLS by default
-	}
-	// Notice the notification parameter is nil since notifications are
-	// not supported in HTTP POST mode.
-	client, err := rpcclient.New(connCfg, nil)
+	client, err := newRpcClient()
 	if err != nil {
 		return 0, err
 	}
@@ -214,6 +201,7 @@ func main() {
 	flag.IntVar(&Port, "port", 1234, "Connect to JSON-RPC port")
 	flag.StringVar(&Username, "username", "rpc", "Username for JSON-RPC connections")
 	flag.StringVar(&Password, "password", "", "Password for JSON-RPC connections")
+	flag.StringVar(&CertFile, "cert", "", "Load certificate from this file")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
