@@ -47,6 +47,48 @@ func newRpcClient() (*rpcclient.Client, error) {
 	return rpcclient.New(connCfg, nil)
 }
 
+func GetBalance(request []string) (float64, error) {
+	client, err := newRpcClient()
+	if err != nil {
+		return 0, err
+	}
+	defer client.Shutdown()
+
+	res, err := client.GetBalance("")
+	if err != nil {
+		return 0, err
+	}
+	return res.ToBTC(), nil
+}
+
+func GetBlockCount(request []string) (uint64, error) {
+	client, err := newRpcClient()
+	if err != nil {
+		return 0, err
+	}
+	defer client.Shutdown()
+
+	res, err := client.GetBlockCount()
+	if err != nil {
+		return 0, err
+	}
+	return uint64(res), nil
+}
+
+func GetConnectionCount(request []string) (uint64, error) {
+	client, err := newRpcClient()
+	if err != nil {
+		return 0, err
+	}
+	defer client.Shutdown()
+
+	res, err := client.GetConnectionCount()
+	if err != nil {
+		return 0, err
+	}
+	return uint64(res), nil
+}
+
 func GetDifficulty(request []string) (float64, error) {
 	client, err := newRpcClient()
 	if err != nil {
@@ -206,6 +248,24 @@ func main() {
 	log.SetOutput(os.Stderr)
 
 	switch flag.Arg(0) {
+	case "balance":
+		if v, err := GetBalance(flag.Args()[1:]); err != nil {
+			log.Fatalf("Error: %s", err.Error())
+		} else {
+			fmt.Print(v)
+		}
+	case "blocks":
+		if v, err := GetBlockCount(flag.Args()[1:]); err != nil {
+			log.Fatalf("Error: %s", err.Error())
+		} else {
+			fmt.Print(v)
+		}
+	case "connections":
+		if v, err := GetConnectionCount(flag.Args()[1:]); err != nil {
+			log.Fatalf("Error: %s", err.Error())
+		} else {
+			fmt.Print(v)
+		}
 	case "difficulty":
 		if v, err := GetDifficulty(flag.Args()[1:]); err != nil {
 			log.Fatalf("Error: %s", err.Error())
@@ -237,6 +297,7 @@ func main() {
 		}
 	default:
 		log.Fatal("You must specify one of the following action: " +
+			"'balance', 'blocks', 'connections', " +
 			"'difficulty', 'networkhashps', 'lastrecipient' or 'lastminedheight'.")
 	}
 }
