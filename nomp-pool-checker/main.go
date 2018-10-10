@@ -107,9 +107,9 @@ func PoolWorkers(request []string) (uint32, error) {
 	return uint32(pool.WorkerCount), nil
 }
 
-// PoolSharesValid is a Uint32ItemHandlerFunc for key `nomp.pool_shares_valid` which returns the pool valid
+// PoolSharesValid is a Uint64ItemHandlerFunc for key `nomp.pool_shares_valid` which returns the pool valid
 // shares.
-func PoolSharesValid(request []string) (uint32, error) {
+func PoolSharesValid(request []string) (uint64, error) {
 	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
 	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
@@ -123,9 +123,9 @@ func PoolSharesValid(request []string) (uint32, error) {
 	return pool.Stat.ValidShares, nil
 }
 
-// PoolSharesInvalid is a Uint32ItemHandlerFunc for key `nomp.pool_shares_invalid` which returns the pool invalid
+// PoolSharesInvalid is a Uint64ItemHandlerFunc for key `nomp.pool_shares_invalid` which returns the pool invalid
 // shares.
-func PoolSharesInvalid(request []string) (uint32, error) {
+func PoolSharesInvalid(request []string) (uint64, error) {
 	nompClient := nomp.NewNompClient(nil, request[0], userAgent)
 	nompClient.SetDebug(debug)
 	status, err := nompClient.GetPoolStatus()
