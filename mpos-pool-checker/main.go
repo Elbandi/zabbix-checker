@@ -4,6 +4,7 @@ import (
 	"github.com/Elbandi/zabbix-checker/common/lld"
 	"bufio"
 	"crypto/tls"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -77,6 +78,26 @@ func splitApiKey(key string) (string, uint64, error) {
 	keyArray := strings.SplitN(key, "_", 2)
 	userId, err := strconv.ParseUint(keyArray[1], 10, 64)
 	return keyArray[0], userId, err
+}
+
+// PoolStatus is a StringItemHandlerFunc for key `mpos.pool_status` which returns the pool status
+// json data.
+func PoolStatus(request []string) (string, error) {
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return "{}", err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
+	mposClient.SetDebug(debug)
+	status, err := mposClient.GetPoolStatus()
+	if err != nil {
+		return "{}", err
+	}
+	ret, err := json.Marshal(status)
+	if err != nil {
+		return "{}", err
+	}
+	return string(ret), nil
 }
 
 // PoolHashrate is a Uint64ItemHandlerFunc for key `mpos.pool_hashrate` which returns the pool hashrate
@@ -157,6 +178,26 @@ func PoolNextBlock(request []string) (uint32, error) {
 		return 0, err
 	}
 	return status.NextNetworkBlock, nil
+}
+
+// UserStatus is a StringItemHandlerFunc for key `mpos.user_status` which returns the user status
+// json data.
+func UserStatus(request []string) (string, error) {
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return "{}", err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
+	mposClient.SetDebug(debug)
+	status, err := mposClient.GetUserStatus()
+	if err != nil {
+		return "{}", err
+	}
+	ret, err := json.Marshal(status)
+	if err != nil {
+		return "{}", err
+	}
+	return string(ret), nil
 }
 
 // UserHashrate is a Uint64ItemHandlerFunc for key `mpos.user_hashrate` which returns the user hashrate
@@ -297,6 +338,21 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s discovery PATH", os.Args[0])
 		}
+	case "pool_status":
+		switch flag.NArg() {
+		case 3:
+			if v, err := PoolStatus(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
+			}
+		default:
+			log.Fatalf("Usage: %s pool_status URL APIKEY", os.Args[0])
+		}
 	case "pool_hashrate":
 		switch flag.NArg() {
 		case 3:
@@ -371,6 +427,21 @@ func main() {
 			}
 		default:
 			log.Fatalf("Usage: %s pool_nextblock URL APIKEY", os.Args[0])
+		}
+	case "user_status":
+		switch flag.NArg() {
+		case 3:
+			if v, err := UserStatus(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
+			}
+		default:
+			log.Fatalf("Usage: %s user_status URL APIKEY", os.Args[0])
 		}
 	case "user_hashrate":
 		switch flag.NArg() {
@@ -464,9 +535,9 @@ func main() {
 		}
 	default:
 		log.Fatal("You must specify one of the following action: " +
-			"'discovery', " +
+			"'discovery', 'pool_status', " +
 			"'pool_hashrate', 'pool_workers', 'pool_efficiency', 'pool_lastblock', 'pool_nextblock', " +
-			"'user_hashrate', 'user_sharerate', 'user_shares_valid', 'user_shares_invalid', " +
+			"'user_status', 'user_hashrate', 'user_sharerate', 'user_shares_valid', 'user_shares_invalid', " +
 			"'user_balance_confirmed' or 'user_balance_unconfirmed'.")
 
 	}
