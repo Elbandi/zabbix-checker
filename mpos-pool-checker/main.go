@@ -264,6 +264,26 @@ func UserSharesInvalid(request []string) (float64, error) {
 	return status.Shares.Invalid, nil
 }
 
+// UserBalance is a DoubleItemHandlerFunc for key `mpos.user_balance` which returns the user
+// balance data.
+func UserBalance(request []string) (string, error) {
+	apikey, userid, err := splitApiKey(request[1])
+	if err != nil {
+		return "{}", err
+	}
+	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
+	mposClient.SetDebug(debug)
+	status, err := mposClient.GetUserBalance()
+	if err != nil {
+		return "{}", err
+	}
+	ret, err := json.Marshal(status)
+	if err != nil {
+		return "{}", err
+	}
+	return string(ret), nil
+}
+
 // UserBalanceConfirmed is a DoubleItemHandlerFunc for key `mpos.user_balance_confirmed` which returns the user
 // confirmed balance.
 func UserBalanceConfirmed(request []string) (float64, error) {
@@ -503,6 +523,21 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s user_shares_invalid URL APIKEY", os.Args[0])
 		}
+	case "user_balance":
+		switch flag.NArg() {
+		case 3:
+			if v, err := UserBalance(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				if output != "" {
+					ioutil.WriteFile(output, []byte(fmt.Sprint(v)), 0644)
+				} else {
+					fmt.Print(v)
+				}
+			}
+		default:
+			log.Fatalf("Usage: %s user_balance URL APIKEY", os.Args[0])
+		}
 	case "user_balance_confirmed":
 		switch flag.NArg() {
 		case 3:
@@ -538,7 +573,7 @@ func main() {
 			"'discovery', 'pool_status', " +
 			"'pool_hashrate', 'pool_workers', 'pool_efficiency', 'pool_lastblock', 'pool_nextblock', " +
 			"'user_status', 'user_hashrate', 'user_sharerate', 'user_shares_valid', 'user_shares_invalid', " +
-			"'user_balance_confirmed' or 'user_balance_unconfirmed'.")
+			"'user_balance', 'user_balance_confirmed' or 'user_balance_unconfirmed'.")
 
 	}
 }
