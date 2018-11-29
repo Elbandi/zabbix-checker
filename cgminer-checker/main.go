@@ -173,6 +173,7 @@ func DiscoverDevs(args ...interface{}) interface{} {
 
 	for _, dev := range *devices {
 		item := make(lld.DiscoveryItem, 0)
+		item["TYPE"] = "DEVICE"
 		item["PORT"] = strconv.FormatInt(port, 10)
 		item["DEVID"] = strconv.FormatInt(dev.ID, 10)
 		item["NAME"] = dev.Name
