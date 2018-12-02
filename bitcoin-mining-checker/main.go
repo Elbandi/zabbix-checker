@@ -47,6 +47,20 @@ func newRpcClient() (*rpcclient.Client, error) {
 	return rpcclient.New(connCfg, nil)
 }
 
+func GetInfo(request []string) (string, error) {
+	client, err := newRpcClient()
+	if err != nil {
+		return "{}", err
+	}
+	defer client.Shutdown()
+
+	res, err := client.GetInfoAsync().ReceiveFuture()
+	if err != nil {
+		return "{}", err
+	}
+	return string(res), nil
+}
+
 func GetBalance(request []string) (float64, error) {
 	client, err := newRpcClient()
 	if err != nil {
@@ -248,6 +262,12 @@ func main() {
 	log.SetOutput(os.Stderr)
 
 	switch flag.Arg(0) {
+	case "info":
+		if v, err := GetInfo(flag.Args()[1:]); err != nil {
+			log.Fatalf("Error: %s", err.Error())
+		} else {
+			fmt.Print(v)
+		}
 	case "balance":
 		if v, err := GetBalance(flag.Args()[1:]); err != nil {
 			log.Fatalf("Error: %s", err.Error())
@@ -297,7 +317,7 @@ func main() {
 		}
 	default:
 		log.Fatal("You must specify one of the following action: " +
-			"'balance', 'blocks', 'connections', " +
+			"'info', 'balance', 'blocks', 'connections', " +
 			"'difficulty', 'networkhashps', 'lastrecipient' or 'lastminedheight'.")
 	}
 }
