@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/bitbandi/go-nicehash-api"
 	"github.com/Elbandi/zabbix-checker/common/lld"
-	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
@@ -13,7 +12,7 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"golang.org/x/net/proxy"
+	"golang.org/x/net/http2"
 )
 
 const defaultUserAgent = "nicehash-checker/1.0"
@@ -38,6 +37,35 @@ func init() {
 	flag.StringVar(&userAgent, "user-agent", defaultUserAgent, "http client user agent")
 }
 
+type myTransport struct {
+	proxyURL *url.URL
+	rt       *http.Transport
+}
+
+func (t *myTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	r.Header.Set("User-Agent", userAgent)
+	r.Header.Set("Cache-Control", "max-age=0")
+	r.Header.Set("Accept-Language", "en-us")
+	t.rt.TLSClientConfig.InsecureSkipVerify = true
+	t.rt.TLSClientConfig.ServerName = r.Host
+	t.rt.Proxy = func(req *http.Request) (*url.URL, error) {
+		return t.proxyURL, nil
+	}
+	response, err := t.rt.RoundTrip(r)
+	if err != nil {
+		return response, err
+	}
+	if response.StatusCode == 403 && response.Header.Get("Cf-Chl-Bypass") != "" { // cloudflare captcha
+		tempHost := r.URL.Host
+		r.URL.Host = "cflaresuje2rb7w2u3w43pn4luxdi6o7oatv6r2zrfb5xvsugj35d2qd.onion"
+		response, err = t.rt.RoundTrip(r)
+		r.URL.Host = tempHost
+		response.Request.URL.Host = tempHost
+	}
+	return response, err
+}
+
+
 func main() {
 	var allorders []nicehash.MyOrders
 
@@ -50,17 +78,16 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to parse proxy URL: %v", err)
 		}
-		dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
-		if err != nil {
-			log.Fatalf("Failed to obtain proxy dialer: %v", err)
-		}
-		http.DefaultTransport = &http.Transport{
-			Dial: dialer.Dial,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		}
 		log.Printf("Set proxy to %s", proxyURL)
+		transport, ok := http.DefaultTransport.(*http.Transport)
+		if !ok {
+			log.Fatalf("Failed to get the default http transport")
+		}
+		http2.ConfigureTransport(transport)
+		http.DefaultTransport = &myTransport{
+			proxyURL: proxyURL,
+			rt:       transport,
+		}
 	}
 
 	if len(ApiKey) == 0 || len(ApiKey) == 0 {
