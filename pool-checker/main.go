@@ -263,28 +263,30 @@ func RunQuery(request []string, action CmdAction) (error) {
 func YiimpStatus(request []string) (error) {
 	yiimpClient := yiimp.NewYiimpClient(nil, request[0], "", userAgent)
 	yiimpClient.SetDebug(debug)
-	status, err := yiimpClient.GetStatus()
-	if err != nil {
+	poolStatus, err := yiimpClient.GetStatus()
+	if err != nil && err != io.EOF {
 		return err
 	}
-	algo, ok := status[request[1]]
-	if !ok {
-		return ErrAlgoNotFound
+	if err == nil {
+		algo, ok := poolStatus[request[1]]
+		if !ok {
+			return ErrAlgoNotFound
+		}
+		fmt.Printf("\"%s\" \"yiimp.pool_hashrate[%s,%s]\" \"%.0f\"\n", zabbixHostName, request[0], request[1], algo.Hashrate)
+		fmt.Printf("\"%s\" \"yiimp.pool_workers[%s,%s]\" \"%.0d\"\n", zabbixHostName, request[0], request[1], algo.Workers)
+		fmt.Printf("\"%s\" \"yiimp.pool_estimate_current[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.EstimateCurrent)
+		fmt.Printf("\"%s\" \"yiimp.pool_estimate_last24h[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.EstimateLast24h)
+		fmt.Printf("\"%s\" \"yiimp.pool_actual_last24h[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.ActualLast24h)
+		fmt.Printf("\"%s\" \"yiimp.pool_rental[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.RentalCurrent)
 	}
-	fmt.Printf("\"%s\" \"yiimp.pool_hashrate[%s,%s]\" \"%.0f\"\n", zabbixHostName, request[0], request[1], algo.Hashrate)
-	fmt.Printf("\"%s\" \"yiimp.pool_workers[%s,%s]\" \"%.0d\"\n", zabbixHostName, request[0], request[1], algo.Workers)
-	fmt.Printf("\"%s\" \"yiimp.pool_estimate_current[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.EstimateCurrent)
-	fmt.Printf("\"%s\" \"yiimp.pool_estimate_last24h[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.EstimateLast24h)
-	fmt.Printf("\"%s\" \"yiimp.pool_actual_last24h[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.ActualLast24h)
-	fmt.Printf("\"%s\" \"yiimp.pool_rental[%s,%s]\" \"%.8f\"\n", zabbixHostName, request[0], request[1], algo.RentalCurrent)
 
-	walletstatus, err := yiimpClient.GetWalletEx(request[2])
+	walletStatus, err := yiimpClient.GetWalletEx(request[2])
 	if err != nil && err != io.EOF {
 		return err
 	}
 	if err == nil {
 		var userHashrate uint64 = 0
-		for _, miner := range walletstatus.Miners {
+		for _, miner := range walletStatus.Miners {
 			if miner.Algo == request[1] {
 				userHashrate += uint64(miner.Accepted)
 			}
@@ -311,29 +313,35 @@ func MposStatus(request []string) (error) {
 	mposClient := mpos.NewMposClient(nil, request[0], apikey, userid, userAgent)
 	mposClient.SetDebug(debug)
 	poolStatus, err := mposClient.GetPoolStatus()
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return err
+	}
+	if err == nil {
+		fmt.Printf("\"%s\" \"mpos.pool_hashrate[%s,%s]\" \"%.0f\"\n", zabbixHostName, request[0], request[1], poolStatus.Hashrate*1000)
+		fmt.Printf("\"%s\" \"mpos.pool_workers[%s,%s]\" \"%d\"\n", zabbixHostName, request[0], request[1], poolStatus.Workers)
+		fmt.Printf("\"%s\" \"mpos.pool_efficiency[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], poolStatus.Efficiency)
+		fmt.Printf("\"%s\" \"mpos.pool_lastblock[%s,%s]\" \"%d\"\n", zabbixHostName, request[0], request[1], poolStatus.LastBlock)
+		fmt.Printf("\"%s\" \"mpos.pool_nextblock[%s,%s]\" \"%d\"\n", zabbixHostName, request[0], request[1], poolStatus.NextNetworkBlock)
 	}
 	userStatus, err := mposClient.GetUserStatus()
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return err
 	}
-	balance, err := mposClient.GetUserBalance()
-	if err != nil {
+	if err == nil {
+		fmt.Printf("\"%s\" \"mpos.user_hashrate[%s,%s]\" \"%.0f\"\n", zabbixHostName, request[0], request[1], userStatus.Hashrate*1000)
+		fmt.Printf("\"%s\" \"mpos.user_sharerate[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userStatus.Sharerate)
+		fmt.Printf("\"%s\" \"mpos.user_shares_valid[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userStatus.Shares.Valid)
+		fmt.Printf("\"%s\" \"mpos.user_shares_invalid[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userStatus.Shares.Invalid)
+	}
+	userBalance, err := mposClient.GetUserBalance()
+	if err != nil && err != io.EOF {
 		return err
+	}
+	if err == nil {
+		fmt.Printf("\"%s\" \"mpos.user_balance_confirmed[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userBalance.Confirmed)
+		fmt.Printf("\"%s\" \"mpos.user_balance_unconfirmed[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userBalance.Unconfirmed)
 	}
 
-	fmt.Printf("\"%s\" \"mpos.pool_hashrate[%s,%s]\" \"%.0f\"\n", zabbixHostName, request[0], request[1], poolStatus.Hashrate*1000)
-	fmt.Printf("\"%s\" \"mpos.pool_workers[%s,%s]\" \"%d\"\n", zabbixHostName, request[0], request[1], poolStatus.Workers)
-	fmt.Printf("\"%s\" \"mpos.pool_efficiency[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], poolStatus.Efficiency)
-	fmt.Printf("\"%s\" \"mpos.pool_lastblock[%s,%s]\" \"%d\"\n", zabbixHostName, request[0], request[1], poolStatus.LastBlock)
-	fmt.Printf("\"%s\" \"mpos.pool_nextblock[%s,%s]\" \"%d\"\n", zabbixHostName, request[0], request[1], poolStatus.NextNetworkBlock)
-	fmt.Printf("\"%s\" \"mpos.user_hashrate[%s,%s]\" \"%.0f\"\n", zabbixHostName, request[0], request[1], userStatus.Hashrate*1000)
-	fmt.Printf("\"%s\" \"mpos.user_sharerate[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userStatus.Sharerate)
-	fmt.Printf("\"%s\" \"mpos.user_shares_valid[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userStatus.Shares.Valid)
-	fmt.Printf("\"%s\" \"mpos.user_shares_invalid[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], userStatus.Shares.Invalid)
-	fmt.Printf("\"%s\" \"mpos.user_balance_confirmed[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], balance.Confirmed)
-	fmt.Printf("\"%s\" \"mpos.user_balance_unconfirmed[%s,%s]\" \"%f\"\n", zabbixHostName, request[0], request[1], balance.Unconfirmed)
 	return nil
 }
 
