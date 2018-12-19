@@ -151,6 +151,8 @@ func DiscoverPools(request []string) (error) {
 	return nil
 }
 
+type CmdAction func(args []string)
+
 func RunQueryAndSend(args []string) {
 	log.Println(strings.Join(args, " "))
 	cmdSender := exec.Command("zabbix_sender", "-vv", "-z", zabbixServer, "-s", zabbixHostName, "-i", "-")
@@ -182,7 +184,11 @@ func RunQueryAndSend(args []string) {
 	stdin.Close()
 }
 
-func RunQuery(request []string) (error) {
+func PrintCommand(args []string) {
+	fmt.Println(strings.Join(args, " "))
+}
+
+func RunQuery(request []string, action CmdAction) (error) {
 	file, err := os.Open(request[0])
 	if err != nil {
 		return err
@@ -214,7 +220,7 @@ func RunQuery(request []string) (error) {
 					args = append(args, "-user-agent", userAgent)
 				}
 				args = append(args, "yiimp", strings.TrimSpace(fields[2]), strings.TrimSpace(fields[3]), strings.TrimSpace(fields[4]))
-				RunQueryAndSend(args)
+				action(args)
 			}
 		case "MPOS":
 			if len(fields) > 4 {
@@ -229,7 +235,7 @@ func RunQuery(request []string) (error) {
 					args = append(args, "-user-agent", userAgent)
 				}
 				args = append(args, "mpos", strings.TrimSpace(fields[2]), strings.TrimSpace(fields[3]))
-				RunQueryAndSend(args)
+				action(args)
 			}
 		case "NOMP":
 			if len(fields) > 5 {
@@ -244,7 +250,7 @@ func RunQuery(request []string) (error) {
 					args = append(args, "-user-agent", userAgent)
 				}
 				args = append(args, "nomp", strings.TrimSpace(fields[2]), strings.TrimSpace(fields[3]), strings.TrimSpace(fields[4]))
-				RunQueryAndSend(args)
+				action(args)
 			}
 		}
 	}
@@ -416,6 +422,15 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s discovery PATH", os.Args[0])
 		}
+	case "getcmd":
+		switch flag.NArg() {
+		case 2:
+			if err := RunQuery(flag.Args()[1:], PrintCommand); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			}
+		default:
+			log.Fatalf("Usage: %s getcmd PATH", os.Args[0])
+		}
 	case "runquery":
 		if zabbixServer == "" {
 			flag.Usage()
@@ -423,11 +438,11 @@ func main() {
 		}
 		switch flag.NArg() {
 		case 2:
-			if err := RunQuery(flag.Args()[1:]); err != nil {
+			if err := RunQuery(flag.Args()[1:], RunQueryAndSend); err != nil {
 				log.Fatalf("Error: %s", err.Error())
 			}
 		default:
-			log.Fatalf("Usage: %s discovery PATH", os.Args[0])
+			log.Fatalf("Usage: %s runquery PATH", os.Args[0])
 		}
 	case "yiimp":
 		switch flag.NArg() {
@@ -459,7 +474,7 @@ func main() {
 
 	default:
 		log.Fatal("You must specify one of the following action: " +
-			"'discovery', 'runquery', 'yiimp', 'mpos' or 'nomp'.")
+			"'discovery', 'getcmd', 'runquery', 'yiimp', 'mpos' or 'nomp'.")
 
 	}
 }
