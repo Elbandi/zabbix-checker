@@ -17,13 +17,13 @@ func GetPrice(request []string) (float64, error) {
 	}
 	database := session.DB(request[1])
 	match := bson.M{"coin": request[3], "base": request[4]}
-	if len(request) > 5 {
+	if len(request) > 5 && request[5] != "*" {
 		match["exchange"] = bson.M{"$nin": strings.Split(request[5], "+")}
 	}
 	pipeline := []bson.M{
-		{"$match": match },
+		{"$match": match},
 		{"$group": bson.M{"_id": "$exchange", "lastDate": bson.M{"$last": "$date"}, "price": bson.M{"$last": "$price"}, "volume": bson.M{"$last": "$volume"}}},
-		{"$project": bson.M{"_id": 0, "exchange": "$_id", "buy": "$price.buy", "volume": "$volume.coin", "basevolume": "$volume.base"}},
+		{"$project": bson.M{"_id": 0, "exchange": "$_id", "buy": "$price.buy", "sell": "$price.sell", "volume": "$volume.coin", "basevolume": "$volume.base"}},
 		{"$sort": bson.M{"volume": -1}},
 		{"$limit": 1},
 	}
@@ -36,6 +36,9 @@ func GetPrice(request []string) (float64, error) {
 	if len(resp) == 0 {
 		return 0.00, nil
 	}
+	if len(request) > 6 && request[6] == "sell" {
+		return resp[0]["sell"].(float64), nil
+	}
 	return resp[0]["buy"].(float64), nil
 }
 
@@ -44,14 +47,14 @@ func main() {
 	log.SetOutput(os.Stderr)
 
 	switch flag.NArg() {
-	case 5, 6:
+	case 5, 6, 7:
 		if v, err := GetPrice(flag.Args()); err != nil {
 			log.Fatalf("Error: %s", err.Error())
 		} else {
 			fmt.Print(v)
 		}
 	default:
-		log.Fatalf("Usage: %s mongoserver database collection coin basecoin", os.Args[0])
+		log.Fatalf("Usage: %s mongoserver database collection coin basecoin sell", os.Args[0])
 	}
 }
 
