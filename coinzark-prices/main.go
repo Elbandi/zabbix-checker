@@ -157,6 +157,9 @@ func main() {
 	q := req.URL.Query()
 	q.Add("from", flag.Args()[0])
 	q.Add("to", flag.Args()[1])
+	if flag.NArg() > 2 {
+		q.Add("amount", flag.Args()[2])
+	}
 	req.URL.RawQuery = q.Encode()
 	response, err := client.Do(req)
 	if err != nil {
