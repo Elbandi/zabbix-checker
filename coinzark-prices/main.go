@@ -22,8 +22,7 @@ var (
 )
 
 type myTransport struct {
-	proxyURL *url.URL
-	rt       *http.Transport
+	rt *http.Transport
 }
 
 func (d myTransport) dumpRequest(r *http.Request) {
@@ -56,10 +55,9 @@ func (t *myTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	r.Header.Set("User-Agent", userAgent)
 	r.Header.Set("Cache-Control", "max-age=0")
 	r.Header.Set("Accept-Language", "en-us")
-	t.rt.TLSClientConfig.InsecureSkipVerify = true
-	t.rt.TLSClientConfig.ServerName = r.Host
-	t.rt.Proxy = func(req *http.Request) (*url.URL, error) {
-		return t.proxyURL, nil
+	if t.rt.TLSClientConfig != nil {
+		t.rt.TLSClientConfig.InsecureSkipVerify = true
+		t.rt.TLSClientConfig.ServerName = r.Host
 	}
 	if debug {
 		t.dumpRequest(r)
@@ -67,9 +65,6 @@ func (t *myTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	response, err := t.rt.RoundTrip(r)
 	if err != nil {
 		return response, err
-	}
-	if debug {
-		t.dumpResponse(response)
 	}
 	if response.StatusCode == 403 && response.Header.Get("Cf-Chl-Bypass") != "" { // cloudflare captcha
 		tempHost := r.URL.Host
@@ -79,9 +74,9 @@ func (t *myTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 		if err == nil {
 			response.Request.URL.Host = tempHost
 		}
-		if debug {
-			t.dumpResponse(response)
-		}
+	}
+	if debug {
+		t.dumpResponse(response)
 	}
 	return response, err
 }
@@ -138,23 +133,25 @@ func main() {
 		log.Fatalf("Usage: %s [-proxy ip:port] FROM TO", os.Args[0])
 	}
 	client := http.Client{}
+	transport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		log.Fatalf("Failed to get the default http transport")
+	}
 	if *proxyPtr != "" {
 		proxyURL, err := url.Parse("socks5://" + *proxyPtr)
 		if err != nil {
 			log.Fatalf("Failed to parse proxy URL: %v", err)
 		}
 		log.Printf("Set proxy to %s", proxyURL)
-		transport, ok := http.DefaultTransport.(*http.Transport)
-		if !ok {
-			log.Fatalf("Failed to get the default http transport")
+		transport.Proxy = func(req *http.Request) (*url.URL, error) {
+			return proxyURL, nil
 		}
-		http2.ConfigureTransport(transport)
-		http.DefaultTransport = &myTransport{
-			proxyURL: proxyURL,
-			rt:       transport,
-		}
-		client.Transport = http.DefaultTransport
 	}
+	http2.ConfigureTransport(transport)
+	http.DefaultTransport = &myTransport{
+		rt: transport,
+	}
+	client.Transport = http.DefaultTransport
 
 	req, err := http.NewRequest("GET", "https://www.coinzark.com/api/v2/swap/rate?amount=1", nil)
 	q := req.URL.Query()
