@@ -14,19 +14,33 @@ import (
 	"fmt"
 	"flag"
 	"os"
+	"io"
 )
 
 const defaultUserAgent = "digikey-checker/1.0"
 
 var (
 	// flags
-	debug bool
+	debug     bool
 	userAgent string
+
+	respReadLimit = int64(4096)
 )
 
 type DigikeyRequest int
 
-func (d DigikeyRequest) Do(req *http.Request) (*http.Response, error) {
+// Try to read the response body so we can reuse this connection.
+func (d *DigikeyRequest) drainBody(body io.ReadCloser) {
+	defer body.Close()
+	_, err := io.Copy(ioutil.Discard, io.LimitReader(body, respReadLimit))
+	if err != nil {
+		if debug {
+			log.Printf("[ERR] error reading response body: %v", err)
+		}
+	}
+}
+
+func (d DigikeyRequest) Do(req *http.Request) (resp *http.Response, err error) {
 	if debug {
 		d.dumpRequest(req)
 	}
@@ -55,14 +69,32 @@ func (d DigikeyRequest) Do(req *http.Request) (*http.Response, error) {
 			}
 		}
 	}
-	resp, err := client.Do(req)
+	retryReq := *req
+	if req.Body != nil {
+		retryReq.Body, err = req.GetBody()
+		if err != nil {
+			return nil, err
+		}
+	}
+	resp, err = client.Do(req)
+	if err != nil {
+		return resp, err
+	}
+	if resp.StatusCode == 403 {
+		d.drainBody(resp.Body)
+		for _, c := range resp.Cookies() {
+			retryReq.AddCookie(c)
+		}
+		resp, err = client.Do(&retryReq)
+		if err != nil {
+			return resp, err
+		}
+	}
 	if debug {
 		d.dumpResponse(resp)
 	}
-	if err == nil {
-		if strings.HasPrefix(resp.Header.Get("Content-Type"), "text/html") {
-			resp.Header.Set("Content-Type", "application/json")
-		}
+	if strings.HasPrefix(resp.Header.Get("Content-Type"), "text/html") {
+		resp.Header.Set("Content-Type", "application/json")
 	}
 	body, err := ioutil.ReadAll(resp.Body);
 	reg, _ := regexp.Compile(": *,")
