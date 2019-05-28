@@ -107,13 +107,15 @@ func (r *Rate) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
-	switch v := aux.FinalAmount.(type) {
-	case int64:
-		r.FinalAmount = float64(v)
-	case float64:
-		r.FinalAmount = v
-	case string:
-		r.FinalAmount, err = strconv.ParseFloat(v, 64)
+	if aux != nil {
+		switch v := aux.FinalAmount.(type) {
+		case int64:
+			r.FinalAmount = float64(v)
+		case float64:
+			r.FinalAmount = v
+		case string:
+			r.FinalAmount, err = strconv.ParseFloat(v, 64)
+		}
 	}
 	return err
 }
