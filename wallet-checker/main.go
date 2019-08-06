@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Elbandi/zabbix-checker/common/lld"
-	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/Elbandi/btcd/rpcclient"
 	"gopkg.in/ini.v1"
 	"flag"
 	"fmt"
@@ -124,7 +124,7 @@ func main() {
 			continue
 		}
 		fmt.Printf("\"%s\" \"wallet.blocks[%s]\" \"%d\"\n", *hostnamePtr, element["NAME"], blockCount)
-		balance, err := client.GetBalance("*")
+		balance, err := client.GetBalance()
 		if err != nil {
 			log.Print(err)
 			continue
