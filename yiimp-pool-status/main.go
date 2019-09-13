@@ -17,6 +17,8 @@ func algo_mBTC_factor(algo string) (float64) {
 	switch algo {
 	case "sha256":
 		return 1e9;
+	case "decred":
+		return 1e6;
 	case "x11",
 		"x13",
 		"qubit",
@@ -27,7 +29,6 @@ func algo_mBTC_factor(algo string) (float64) {
 		"blake2s",
 		"keccak",
 		"keccakc",
-		"decred",
 		"vanilla":
 		return 1e3;
 	case "equihash",
@@ -71,12 +72,12 @@ func main() {
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.hashrate[%s]\" \"%.0f\"\n", hostname, poolkey, element["ALGO"], status[key].Hashrate)
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.hashrate24h[%s]\" \"%.0f\"\n", hostname, poolkey, element["ALGO"], status[key].Hashrate24h)
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.workers[%s]\" \"%d\"\n", hostname, poolkey, element["ALGO"], status[key].Workers)
-		btcmhday := status[key].ActualLast24h * 1e5 // float64(algo_mBTC_factor(key))
-		fmt.Printf("\"%s\" \"yiimpstatus.%s.btcmhday[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btcmhday)
 		factor := status[key].UnitFactor
 		if factor == 0 {
 			factor = algo_mBTC_factor(key)
 		}
+		btcmhday := status[key].ActualLast24h * 1e5 / factor
+		fmt.Printf("\"%s\" \"yiimpstatus.%s.btcmhday[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btcmhday)
 		btctotal := status[key].Hashrate24h * status[key].ActualLast24h / factor / 1e9
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.btctotal[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btctotal)
 
