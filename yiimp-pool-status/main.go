@@ -71,7 +71,7 @@ func main() {
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.hashrate[%s]\" \"%.0f\"\n", hostname, poolkey, element["ALGO"], status[key].Hashrate)
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.hashrate24h[%s]\" \"%.0f\"\n", hostname, poolkey, element["ALGO"], status[key].Hashrate24h)
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.workers[%s]\" \"%d\"\n", hostname, poolkey, element["ALGO"], status[key].Workers)
-		btcmhday := status[key].ActualLast24h / 1e3 // float64(algo_mBTC_factor(key))
+		btcmhday := status[key].ActualLast24h * 1e5 // float64(algo_mBTC_factor(key))
 		fmt.Printf("\"%s\" \"yiimpstatus.%s.btcmhday[%s]\" \"%f\"\n", hostname, poolkey, element["ALGO"], btcmhday)
 		factor := status[key].UnitFactor
 		if factor == 0 {
