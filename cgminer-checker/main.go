@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Elbandi/go-cgminer-api"
-	"github.com/stefantalpalaru/pool"
+	"github.com/Elbandi/pool"
 	"github.com/Elbandi/zabbix-checker/common/lld"
 	"errors"
 	"flag"
