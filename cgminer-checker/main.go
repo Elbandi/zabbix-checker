@@ -114,7 +114,7 @@ func DiscoverMiner(request []string) (lld.DiscoveryData, error) {
 	go sendDiscoveryMsg(mCastReport)
 	l, err := net.ListenUDP("udp", listenAddr)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to listen on %s: %s", err.Error())
+		return nil, fmt.Errorf("Unable to listen on %s: %s", listenAddr, err.Error())
 	}
 	l.SetReadBuffer(maxDatagramSize)
 	l.SetReadDeadline(time.Now().Add(2 * time.Second))
