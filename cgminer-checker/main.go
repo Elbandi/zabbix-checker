@@ -270,8 +270,8 @@ func Rejected(request []string) (float64, error) {
 	return dev.DeviceRejected, nil
 }
 
-// AcceptedShares is a DoubleItemHandlerFunc for key `cgminer.temperature` which returns the rejected shares
-// counter.
+// Temperature is a DoubleItemHandlerFunc for key `cgminer.temperature` which returns the temperature of
+// the device.
 func Temperature(request []string) (float64, error) {
 	dev, err := QueryDevice(request)
 	if err != nil {
