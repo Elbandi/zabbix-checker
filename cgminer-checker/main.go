@@ -280,6 +280,15 @@ func Temperature(request []string) (float64, error) {
 	return dev.Temperature, nil
 }
 
+// LastShareDiff is a DoubleItemHandlerFunc for key `cgminer.lastsharediff` which returns the last share
+// Difficulty.
+func LastShareDiff(request []string) (float64, error) {
+	dev, err := QueryDevice(request)
+	if err != nil {
+		return 0.00, err
+	}
+	return dev.LastShareDifficulty, nil
+}
 
 func main() {
 	flag.BoolVar(&debug, "debug", false, "enable debug mode")
@@ -397,7 +406,18 @@ func main() {
 		default:
 			log.Fatalf("Usage: %s temperature PORT DEVICEID", os.Args[0])
 		}
+	case "lastsharediff":
+		switch flag.NArg() {
+		case 3:
+			if v, err := LastShareDiff(flag.Args()[1:]); err != nil {
+				log.Fatalf("Error: %s", err.Error())
+			} else {
+				fmt.Print(v)
+			}
+		default:
+			log.Fatalf("Usage: %s lastsharediff PORT DEVICEID", os.Args[0])
+		}
 	default:
-		log.Fatal("You must specify one of the following action: 'discovery', 'status', 'enabled', 'accept_shares', 'frequency', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected' or 'temperature'.")
+		log.Fatal("You must specify one of the following action: 'discovery', 'status', 'enabled', 'accept_shares', 'frequency', 'hwerrors', 'hashrate', 'hashrate_av', 'rejected', 'lastsharediff' or 'temperature'.")
 	}
 }
