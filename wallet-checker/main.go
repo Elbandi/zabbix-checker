@@ -124,6 +124,17 @@ func main() {
 			continue
 		}
 		fmt.Printf("\"%s\" \"wallet.blocks[%s]\" \"%d\"\n", *hostnamePtr, element["NAME"], blockCount)
+		blockhash, err := client.GetBlockHash(blockCount)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		block, err := client.GetBlockVerbose(blockhash)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		fmt.Printf("\"%s\" \"wallet.blocktime[%s]\" \"%d\"\n", *hostnamePtr, element["NAME"], block.Time)
 		balance, err := client.GetBalance()
 		if err != nil {
 			log.Print(err)
