@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Elbandi/zabbix-checker/common/lld"
-	"github.com/Elbandi/btcd/rpcclient"
+	"github.com/btcsuite/btcd/rpcclient"
 	"gopkg.in/ini.v1"
 	"flag"
 	"fmt"
