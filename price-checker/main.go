@@ -58,7 +58,7 @@ func main() {
 			fmt.Print(v)
 		}
 	default:
-		log.Fatalf("Usage: %s mongoserver database collection coin basecoin sell", os.Args[0])
+		log.Fatalf("Usage: %s mongoserver database collection coin basecoin exchange sell", os.Args[0])
 	}
 }
 
