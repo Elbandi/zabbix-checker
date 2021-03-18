@@ -2,6 +2,7 @@ github.com/Elbandi/btcd v0.0.0-20210308200744-7eb9c3036674 h1:oNzhWIQKvhplXs6345
 github.com/Elbandi/btcd v0.0.0-20210308200744-7eb9c3036674/go.mod h1:Sv4JPQ3/M+teHz9Bo5jBpkNcP0x6r7rdihlNL/7tTAs=
 github.com/Elbandi/btcd v0.0.0-20210310214419-056a487e460d h1:uxYMioukO+XEXm0WJuKGSQmslAae3KRbwEoa3bX3Qt0=
 github.com/Elbandi/btcd v0.0.0-20210310214419-056a487e460d/go.mod h1:Sv4JPQ3/M+teHz9Bo5jBpkNcP0x6r7rdihlNL/7tTAs=
+github.com/Elbandi/btcd v0.0.0-20210318224925-dacdb06fcac8/go.mod h1:Sv4JPQ3/M+teHz9Bo5jBpkNcP0x6r7rdihlNL/7tTAs=
 github.com/Elbandi/zabbix-checker v0.0.0-20200410093639-324425608843 h1:XCO8MXL5xHD1XKes1iEFC+SAzUxYiX8kmmNd57MB5FE=
 github.com/Elbandi/zabbix-checker v0.0.0-20200410093639-324425608843/go.mod h1:zXzTodXPq8YI7VRVJ+c+PMXBByY4ED8L1vBgnm9XNvc=
 github.com/Elbandi/zabbix-checker v0.0.0-20210310215054-15c6e3f801a8 h1:yvRCT7OgfLNaXjs/SSioWj7mEyMCYu8bbxkc9jjr8cw=
