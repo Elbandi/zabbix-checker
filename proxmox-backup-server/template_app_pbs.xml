@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2022-01-16T23:12:57Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template Proxmox Backup Server</template>
+            <name>Template Proxmox Backup Server</name>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Datastore</name>
+                </application>
+                <application>
+                    <name>Status</name>
+                </application>
+                <application>
+                    <name>Zabbix raw items</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Backup: get data</name>
+                    <type>ZABBIX_ACTIVE</type>
+                    <key>pbs.backup.get</key>
+                    <history>1d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <params>var input = JSON.parse(value),
+    output = [];
+
+Object.keys(input).forEach(function (key) {
+    input[key].forEach(function (backup) {
+        backup.store = key;
+        output.push(backup);
+    })
+});
+
+return JSON.stringify(output);</params>
+                        </step>
+                    </preprocessing>
+                    <triggers>
+                        <trigger>
+                            <expression>{nodata(30m)}=1</expression>
+                            <name>Backup: Failed to fetch data (or no data for 30m)</name>
+                            <priority>AVERAGE</priority>
+                            <description>Zabbix has not received data for items for the last 30 minutes.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Datastore: get data</name>
+                    <type>ZABBIX_ACTIVE</type>
+                    <key>pbs.datastore.get</key>
+                    <history>1d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{nodata(30m)}=1</expression>
+                            <name>Datastore: Failed to fetch data (or no data for 30m)</name>
+                            <priority>AVERAGE</priority>
+                            <description>Zabbix has not received data for items for the last 30 minutes.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Snapshot: get data</name>
+                    <type>ZABBIX_ACTIVE</type>
+                    <key>pbs.snapshot.get</key>
+                    <history>1d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <params>var input = JSON.parse(value),
+    output = [];
+
+Object.keys(input).forEach(function (key) {
+    input[key].forEach(function (backup) {
+        backup.store = key;
+        if (!backup.hasOwnProperty('verification')) {
+            backup.verification = {&quot;state&quot;: &quot;unknown&quot;}
+        }
+        output.push(backup);
+    })
+});
+
+return JSON.stringify(output);</params>
+                        </step>
+                    </preprocessing>
+                    <triggers>
+                        <trigger>
+                            <expression>{nodata(30m)}=1</expression>
+                            <name>Snapshot: Failed to fetch data (or no data for 30m)</name>
+                            <priority>AVERAGE</priority>
+                            <description>Zabbix has not received data for items for the last 30 minutes.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Backup discovery</name>
+                    <type>DEPENDENT</type>
+                    <key>pbs.backup.discovery</key>
+                    <delay>0</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Last backup time {#ID}</name>
+                            <type>DEPENDENT</type>
+                            <key>pbs.backup.last[{#STORE},{#TYPE},{#ID}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>Status</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.[?(@.store == &quot;{#STORE}&quot; &amp;&amp; @.[&quot;backup-type&quot;] == &quot;{#TYPE}&quot; &amp;&amp; @.[&quot;backup-id&quot;] == &quot;{#ID}&quot;)].[&quot;last-backup&quot;].first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pbs.backup.get</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>({now()}-&#13;
+{last()}) / 3600 &gt; {$PBS.BACKUP.MAX}</expression>
+                                    <name>More than {$PBS.BACKUP.MAX} hours without backup</name>
+                                    <opdata>Current: {ITEM.VALUE}</opdata>
+                                    <priority>WARNING</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <master_item>
+                        <key>pbs.backup.get</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#ID}</lld_macro>
+                            <path>$.[&quot;backup-id&quot;]</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#STORE}</lld_macro>
+                            <path>$.store</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$.[&quot;backup-type&quot;]</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Datastore discovery</name>
+                    <type>DEPENDENT</type>
+                    <key>pbs.datastore.discovery</key>
+                    <delay>0</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Datastore {#NAME}: Available space</name>
+                            <type>DEPENDENT</type>
+                            <key>pbs.datastore.size[{#NAME},free]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>Datastore</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.store==&quot;{#NAME}&quot;)].avail.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pbs.datastore.get</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Datastore {#NAME}: Available space in %</name>
+                            <type>CALCULATED</type>
+                            <key>pbs.datastore.size[{#NAME},pfree]</key>
+                            <history>7d</history>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(&quot;pbs.datastore.size[{#NAME},free]&quot;) / last(&quot;pbs.datastore.size[{#NAME},total]&quot;)</params>
+                            <applications>
+                                <application>
+                                    <name>Datastore</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{min(5)}&lt;{$PBS.DATASTORE.PFREE.MIN.CRIT:&quot;{#NAME}&quot;}</expression>
+                                    <name>{#NAME}: Running out of free space (free &lt; {$PBS.DATASTORE.PFREE.MIN.CRIT:&quot;{#NAME}&quot;}%)</name>
+                                    <opdata>Free spaces: {ITEM.LASTVALUE1}</opdata>
+                                    <priority>AVERAGE</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{min(5)}&lt;{$PBS.DATASTORE.PFREE.MIN.WARN:&quot;{#NAME}&quot;}</expression>
+                                    <name>{#NAME}: Running out of free space (free &lt; {$PBS.DATASTORE.PFREE.MIN.WARN:&quot;{#NAME}&quot;}%)</name>
+                                    <opdata>Free spaces: {ITEM.LASTVALUE1}</opdata>
+                                    <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>{#NAME}: Running out of free space (free &lt; {$PBS.DATASTORE.PFREE.MIN.CRIT:&quot;{#NAME}&quot;}%)</name>
+                                            <expression>{Template Proxmox Backup Server:pbs.datastore.size[{#NAME},pfree].min(5)}&lt;{$PBS.DATASTORE.PFREE.MIN.CRIT:&quot;{#NAME}&quot;}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Datastore {#NAME}: Total space</name>
+                            <type>DEPENDENT</type>
+                            <key>pbs.datastore.size[{#NAME},total]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>Datastore</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.store==&quot;{#NAME}&quot;)].total.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pbs.datastore.get</key>
+                            </master_item>
+                        </item_prototype>
+                    </item_prototypes>
+                    <master_item>
+                        <key>pbs.datastore.get</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#NAME}</lld_macro>
+                            <path>$.store</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$PBS.DATASTORE.PFREE.MIN.CRIT}</macro>
+                    <value>10</value>
+                </macro>
+                <macro>
+                    <macro>{$PBS.DATASTORE.PFREE.MIN.WARN}</macro>
+                    <value>20</value>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+</zabbix_export>
