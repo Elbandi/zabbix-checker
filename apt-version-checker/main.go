@@ -1,11 +1,14 @@
 package main
 
 import (
+	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/knqyf263/go-deb-version"
 	"github.com/stapelberg/godebiancontrol"
+	"github.com/ulikunitz/xz"
 	"io"
 	"log"
 	"net/http"
@@ -58,6 +61,19 @@ func (p packageVersion) MarshalText() (text []byte, err error) {
 	return []byte(p.String()), nil
 }
 
+func DownloadPackageList() (resp *http.Response, err error) {
+	for _, filename := range []string{"Packages", "Packages.gz", "Packages.xz"} {
+		resp, err = http.Get(fmt.Sprintf("%s/dists/%s/%s/binary-%s/%s", url, suite, component, architecture, filename))
+		if err != nil {
+			return resp, err
+		}
+		if resp.StatusCode == 200 {
+			return resp, err
+		}
+	}
+	return resp, errors.New(resp.Status)
+}
+
 func main() {
 	flag.StringVar(&packageNames, "name", "", "comma separated list of package name to check")
 	flag.StringVar(&url, "url", "", "the base of the Debian distribution")
@@ -72,11 +88,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	resp, err := http.Get(fmt.Sprintf("%s/dists/%s/%s/binary-%s/Packages", url, suite, component, architecture))
+	resp, err := DownloadPackageList()
 	FatalErr(err, "Failed to download package list")
 	defer DeferClose(resp.Body, "Failed to close http response body")
 
-	paragraphs, err := godebiancontrol.Parse(resp.Body)
+	// Check that the server actually sent compressed data
+	var reader io.Reader
+	switch resp.Header.Get("Content-Type") {
+	case "application/x-xz":
+		xzr, err := xz.NewReader(resp.Body)
+		FatalErr(err, "Failed to unpack package list")
+		//defer DeferClose(reader, "Failed to close gzip stream")
+		reader = io.Reader(xzr)
+	case "application/x-gzip":
+		gzr, err := gzip.NewReader(resp.Body)
+		FatalErr(err, "Failed to unpack package list")
+		defer DeferClose(gzr, "Failed to close gzip stream")
+		reader = io.Reader(gzr)
+	default:
+		reader = resp.Body
+	}
+	paragraphs, err := godebiancontrol.Parse(reader)
 	FatalErr(err, "Failed to parse package list")
 
 	packages := strings.Split(packageNames, ",")
