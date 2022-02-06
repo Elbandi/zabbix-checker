@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2022-02-06T02:03:48Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template Package Versions</template>
+            <name>Template Package Versions</name>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <name>Package php 7.4 version</name>
+                    <key>apt.version[{$APT.REPO.PHP.URL},bionic,main,php7.4]</key>
+                    <delay>1d</delay>
+                    <trends>0</trends>
+                    <value_type>CHAR</value_type>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.[&quot;php7.4&quot;]</params>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <params>1d</params>
+                        </step>
+                    </preprocessing>
+                    <triggers>
+                        <trigger>
+                            <expression>{diff()}=1</expression>
+                            <recovery_mode>NONE</recovery_mode>
+                            <name>Package php7.4 version</name>
+                            <opdata>{ITEM.LASTVALUE}</opdata>
+                            <priority>INFO</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Package zabbix-agent 5.0 version</name>
+                    <key>apt.version[{$APT.REPO.ZABBIX50.URL},xenial,main,zabbix-agent]</key>
+                    <delay>1d</delay>
+                    <trends>0</trends>
+                    <value_type>CHAR</value_type>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.[&quot;zabbix-agent&quot;]</params>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <params>1d</params>
+                        </step>
+                    </preprocessing>
+                    <triggers>
+                        <trigger>
+                            <expression>{diff()}=1</expression>
+                            <recovery_mode>NONE</recovery_mode>
+                            <name>Package zabbix-agent 5.0 version</name>
+                            <opdata>{ITEM.LASTVALUE}</opdata>
+                            <priority>INFO</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Package zabbix-agent 5.4 version</name>
+                    <key>apt.version[{$APT.REPO.ZABBIX54.URL},bionic,main,zabbix-agent]</key>
+                    <delay>1d</delay>
+                    <trends>0</trends>
+                    <value_type>CHAR</value_type>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.[&quot;zabbix-agent&quot;]</params>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <params>1d</params>
+                        </step>
+                    </preprocessing>
+                    <triggers>
+                        <trigger>
+                            <expression>{diff()}=1</expression>
+                            <recovery_mode>NONE</recovery_mode>
+                            <name>Package zabbix-agent 5.4 version</name>
+                            <opdata>{ITEM.LASTVALUE}</opdata>
+                            <priority>INFO</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+            <macros>
+                <macro>
+                    <macro>{$APT.REPO.PHP.URL}</macro>
+                    <value>https://ppa.launchpadcontent.net/ondrej/php/ubuntu</value>
+                </macro>
+                <macro>
+                    <macro>{$APT.REPO.ZABBIX50.URL}</macro>
+                    <value>https://repo.zabbix.com/zabbix/5.0/ubuntu</value>
+                </macro>
+                <macro>
+                    <macro>{$APT.REPO.ZABBIX54.URL}</macro>
+                    <value>https://repo.zabbix.com/zabbix/5.4/ubuntu</value>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+</zabbix_export>
