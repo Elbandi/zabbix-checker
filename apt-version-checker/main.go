@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"compress/gzip"
 	"encoding/json"
 	"errors"
@@ -74,6 +75,28 @@ func DownloadPackageList() (resp *http.Response, err error) {
 	return resp, errors.New(resp.Status)
 }
 
+func ReadPackageNames(fileName string) (lines []string, err error) {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return nil, err
+	}
+	defer DeferClose(file, "Failed to close file")
+
+	scanner := bufio.NewScanner(file)
+	//	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if len(line) > 0 {
+			lines = append(lines, line)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	return
+}
+
 func main() {
 	flag.StringVar(&packageNames, "name", "", "comma separated list of package name to check")
 	flag.StringVar(&url, "url", "", "the base of the Debian distribution")
@@ -111,7 +134,13 @@ func main() {
 	paragraphs, err := godebiancontrol.Parse(reader)
 	FatalErr(err, "Failed to parse package list")
 
-	packages := strings.Split(packageNames, ",")
+	var packages []string
+	if _, err := os.Stat(packageNames); err == nil {
+		packages, err = ReadPackageNames(packageNames)
+		FatalErr(err, "Failed to read package file")
+	} else {
+		packages = strings.Split(packageNames, ",")
+	}
 	versions := make(map[string]packageVersion)
 	for _, pkg := range paragraphs {
 		packageName := pkg["Package"]
