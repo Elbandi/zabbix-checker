@@ -160,8 +160,8 @@ return JSON.stringify(output);</params>
                                 <trigger_prototype>
                                     <expression>({now()}-&#13;
 {last()}) / 3600 &gt; {$PBS.BACKUP.MAX}</expression>
-                                    <name>More than {$PBS.BACKUP.MAX} hours without backup</name>
-                                    <opdata>Current: {ITEM.VALUE}</opdata>
+                                    <name>[{#STORE}-{#TYPE}/{#ID}]: More than {$PBS.BACKUP.MAX} hours without backup</name>
+                                    <opdata>Key: {ITEM.KEY}</opdata>
                                     <priority>WARNING</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
