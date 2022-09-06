@@ -218,7 +218,7 @@ return JSON.stringify(output);</params>
                             <history>7d</history>
                             <value_type>FLOAT</value_type>
                             <units>%</units>
-                            <params>last(&quot;pbs.datastore.size[{#NAME},free]&quot;) / last(&quot;pbs.datastore.size[{#NAME},total]&quot;)</params>
+                            <params>100 * last(&quot;pbs.datastore.size[{#NAME},free]&quot;) / last(&quot;pbs.datastore.size[{#NAME},total]&quot;)</params>
                             <applications>
                                 <application>
                                     <name>Datastore</name>
