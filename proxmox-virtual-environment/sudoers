@@ -1,0 +1,5 @@
+Cmnd_Alias C_ZABBIX_PVE = \
+    /usr/bin/pvesh
+
+Defaults!C_ZABBIX_PVE !logfile, !syslog, !pam_session
+zabbix  ALL=NOPASSWD: C_ZABBIX_PVE
