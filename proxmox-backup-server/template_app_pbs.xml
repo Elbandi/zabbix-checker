@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2022-01-16T23:12:57Z</date>
+    <date>2022-09-06T13:47:30Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -17,6 +17,9 @@
                 </group>
             </groups>
             <applications>
+                <application>
+                    <name>Backups</name>
+                </application>
                 <application>
                     <name>Datastore</name>
                 </application>
@@ -276,8 +279,85 @@ return JSON.stringify(output);</params>
                         </lld_macro_path>
                     </lld_macro_paths>
                 </discovery_rule>
+                <discovery_rule>
+                    <name>Snapshot discovery</name>
+                    <type>DEPENDENT</type>
+                    <key>pbs.snapshot.discovery</key>
+                    <delay>0</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#VERIFY_STATE}</macro>
+                                <value>ok</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <lifetime>1d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Verify state</name>
+                            <type>DEPENDENT</type>
+                            <key>pbs.snapshot.verify[{#STORE},{#TYPE},{#ID},{#TIME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Backups</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.[?(@.store == &quot;{#STORE}&quot; &amp;&amp; @.[&quot;backup-type&quot;] == &quot;{#TYPE}&quot; &amp;&amp; @.[&quot;backup-id&quot;] == &quot;{#ID}&quot; &amp;&amp; @.[&quot;backup-time&quot;] == &quot;{#TIME}&quot;)].verification.state.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pbs.snapshot.get</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}=&quot;failed&quot;</expression>
+                                    <name>Backup [{#STORE}-{#TYPE}/{#ID}-{#TIME}]: failed verify</name>
+                                    <priority>AVERAGE</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <master_item>
+                        <key>pbs.snapshot.get</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#ID}</lld_macro>
+                            <path>$.[&quot;backup-id&quot;]</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#STORE}</lld_macro>
+                            <path>$.store</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TIME}</lld_macro>
+                            <path>$.[&quot;backup-time&quot;]</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$.[&quot;backup-type&quot;]</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#VERIFY_STATE}</lld_macro>
+                            <path>$.verification.state</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
             </discovery_rules>
             <macros>
+                <macro>
+                    <macro>{$PBS.BACKUP.MAX}</macro>
+                    <value>48</value>
+                </macro>
                 <macro>
                     <macro>{$PBS.DATASTORE.PFREE.MIN.CRIT}</macro>
                     <value>10</value>
