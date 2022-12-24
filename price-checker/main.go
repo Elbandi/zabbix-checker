@@ -1,27 +1,42 @@
 package main
 
 import (
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"flag"
 	"fmt"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"os"
 	"strings"
+	"time"
+)
+
+var (
+	MongoDBHosts string
+	AuthDatabase string
+	AuthUserName string
+	AuthPassword string
 )
 
 func GetPrice(request []string) (float64, error) {
-	session, err := mgo.Dial(request[0])
+	mongoDBDialInfo := &mgo.DialInfo{
+		Addrs:    []string{MongoDBHosts},
+		Database: AuthDatabase,
+		Username: AuthUserName,
+		Password: AuthPassword,
+		Timeout:  5 * time.Second,
+	}
+	session, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
 		return 0.00, err
 	}
-	database := session.DB(request[1])
-	match := bson.M{"coin": request[3], "base": request[4]}
-	if len(request) > 5 {
-		if len(request[5]) > 1 && strings.HasPrefix(request[5], "!") {
-			match["exchange"] = bson.M{"$nin": strings.Split(request[5][1:], "+")}
-		} else if request[5] != "*" {
-			match["exchange"] = bson.M{"$in": strings.Split(request[5], "+")}
+	database := session.DB(request[0])
+	match := bson.M{"coin": request[2], "base": request[3]}
+	if len(request) > 4 {
+		if len(request[4]) > 1 && strings.HasPrefix(request[4], "!") {
+			match["exchange"] = bson.M{"$nin": strings.Split(request[4][1:], "+")}
+		} else if request[4] != "*" {
+			match["exchange"] = bson.M{"$in": strings.Split(request[4], "+")}
 		}
 	}
 	pipeline := []bson.M{
@@ -31,7 +46,7 @@ func GetPrice(request []string) (float64, error) {
 		{"$sort": bson.M{"volume": -1}},
 		{"$limit": 1},
 	}
-	pipe := database.C(request[2]).Pipe(pipeline);
+	pipe := database.C(request[1]).Pipe(pipeline)
 	var resp []bson.M
 	err = pipe.All(&resp)
 	if err != nil {
@@ -40,25 +55,28 @@ func GetPrice(request []string) (float64, error) {
 	if len(resp) == 0 {
 		return 0.00, nil
 	}
-	if len(request) > 6 && request[6] == "sell" {
+	if len(request) > 5 && request[5] == "sell" {
 		return resp[0]["sell"].(float64), nil
 	}
 	return resp[0]["buy"].(float64), nil
 }
 
 func main() {
+	flag.StringVar(&MongoDBHosts, "server", "127.0.0.1", "MongoDB server ip")
+	flag.StringVar(&AuthDatabase, "database", "admin", "MongoDB auth database")
+	flag.StringVar(&AuthUserName, "username", "admin", "MongoDB auth username")
+	flag.StringVar(&AuthPassword, "password", "", "MongoDB auth password")
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
 	switch flag.NArg() {
-	case 5, 6, 7:
+	case 4, 5, 6:
 		if v, err := GetPrice(flag.Args()); err != nil {
 			log.Fatalf("Error: %s", err.Error())
 		} else {
 			fmt.Print(v)
 		}
 	default:
-		log.Fatalf("Usage: %s mongoserver database collection coin basecoin exchange sell", os.Args[0])
+		log.Fatalf("Usage: %s database collection coin basecoin exchange sell", os.Args[0])
 	}
 }
-
