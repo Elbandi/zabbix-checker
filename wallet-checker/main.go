@@ -1,16 +1,17 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"github.com/Elbandi/zabbix-checker/common/lld"
 	"github.com/btcsuite/btcd/rpcclient"
 	"gopkg.in/ini.v1"
-	"flag"
-	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type arrayFlags []string
@@ -41,21 +42,47 @@ type BitcoinConfig struct {
 }
 
 func main() {
-	var excludesearch arrayFlags
-	hostnamePtr := flag.String("hostname", "", "zabbix hostname")
-	basepathPtr := flag.String("basepath", "/srv", "base path")
-	searchSuffixPtr := flag.String("searchSuffix", "-data", "search suffix")
-	flag.Var(&excludesearch, "exclude", "exclude from search list")
+	var hostnameFlag string
+	const (
+		hostnameDefault     = ""
+		hostnameDescription = "zabbix hostname"
+	)
+	flag.StringVar(&hostnameFlag, "hostname", hostnameDefault, hostnameDescription)
+	flag.StringVar(&hostnameFlag, "h", hostnameDefault, hostnameDescription)
+
+	var basepathFlag string
+	const (
+		basepathDefault     = "/srv"
+		basepathDescription = "base path"
+	)
+	flag.StringVar(&basepathFlag, "basepath", basepathDefault, basepathDescription)
+	flag.StringVar(&basepathFlag, "b", basepathDefault, basepathDescription)
+
+	var searchSuffixFlag string
+	const (
+		searchSuffixDefault     = "-data"
+		searchSuffixDescription = "search suffix"
+	)
+	flag.StringVar(&searchSuffixFlag, "searchSuffix", searchSuffixDefault, searchSuffixDescription)
+	flag.StringVar(&searchSuffixFlag, "s", searchSuffixDefault, searchSuffixDescription)
+
+	var excludeSearchFlag arrayFlags
+	const (
+		excludeSearchDescription = "exclude from search list"
+	)
+	flag.Var(&excludeSearchFlag, "exclude", excludeSearchDescription)
+	flag.Var(&excludeSearchFlag, "e", excludeSearchDescription)
+
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
-	if *hostnamePtr == "" {
+	if len(hostnameFlag) == 0 {
 		flag.Usage()
 		os.Exit(1)
 	}
 
 	discovery := make(lld.DiscoveryData, 0)
-	err := filepath.Walk(*basepathPtr, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(basepathFlag, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -65,9 +92,9 @@ func main() {
 		if _, err := os.Stat(path + "/.nosync"); !os.IsNotExist(err) {
 			return nil
 		}
-		if strings.HasSuffix(path, *searchSuffixPtr) {
-			name := strings.TrimSuffix(filepath.Base(path), *searchSuffixPtr)
-			if stringInSlice(name, excludesearch) {
+		if strings.HasSuffix(path, searchSuffixFlag) {
+			name := strings.TrimSuffix(filepath.Base(path), searchSuffixFlag)
+			if stringInSlice(name, excludeSearchFlag) {
 				return nil
 			}
 			item := make(lld.DiscoveryItem, 0)
@@ -81,22 +108,22 @@ func main() {
 		log.Print(err)
 		os.Exit(1)
 	}
-	fmt.Printf("\"%s\" \"wallet.discovery\" %s\n", *hostnamePtr, strconv.Quote(discovery.JsonLine()))
+	fmt.Printf("\"%s\" \"wallet.discovery\" %s\n", hostnameFlag, strconv.Quote(discovery.JsonLine()))
 	for _, element := range discovery {
 		logPath := filepath.Join(element["PATH"], "debug.log")
 		fi, err := os.Stat(logPath)
 		if err != nil {
 			if os.IsNotExist(err) {
-				fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"0\"\n", *hostnamePtr, logPath)
+				fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"0\"\n", hostnameFlag, logPath)
 			} else {
 				log.Print(err)
 			}
 		} else {
-			fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"%d\"\n", *hostnamePtr, logPath, fi.Size())
+			fmt.Printf("\"%s\" \"vfs.file.size[%s]\" \"%d\"\n", hostnameFlag, logPath, fi.Size())
 		}
 
-		config := &BitcoinConfig{Hostname:"127.0.0.1", Port:8332}
-		err = ini.MapTo(config, filepath.Join(element["PATH"], element["NAME"] + ".conf"))
+		config := &BitcoinConfig{Hostname: "127.0.0.1", Port: 8332}
+		err = ini.MapTo(config, filepath.Join(element["PATH"], element["NAME"]+".conf"))
 		if err != nil {
 			log.Print(err)
 			continue
@@ -123,7 +150,7 @@ func main() {
 			log.Print(err)
 			continue
 		}
-		fmt.Printf("\"%s\" \"wallet.blocks[%s]\" \"%d\"\n", *hostnamePtr, element["NAME"], blockCount)
+		fmt.Printf("\"%s\" \"wallet.blocks[%s]\" \"%d\"\n", hostnameFlag, element["NAME"], blockCount)
 		blockhash, err := client.GetBlockHash(blockCount)
 		if err != nil {
 			log.Print(err)
@@ -134,12 +161,12 @@ func main() {
 			log.Print(err)
 			continue
 		}
-		fmt.Printf("\"%s\" \"wallet.blocktime[%s]\" \"%d\"\n", *hostnamePtr, element["NAME"], block.Time)
+		fmt.Printf("\"%s\" \"wallet.blocktime[%s]\" \"%d\"\n", hostnameFlag, element["NAME"], block.Time)
 		balance, err := client.GetBalance()
 		if err != nil {
 			log.Print(err)
 			continue
 		}
-		fmt.Printf("\"%s\" \"wallet.balance[%s]\" \"%f\"\n", *hostnamePtr, element["NAME"], balance.ToBTC())
+		fmt.Printf("\"%s\" \"wallet.balance[%s]\" \"%f\"\n", hostnameFlag, element["NAME"], balance.ToBTC())
 	}
 }
