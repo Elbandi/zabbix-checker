@@ -66,6 +66,14 @@ func main() {
 	flag.StringVar(&searchSuffixFlag, "searchSuffix", searchSuffixDefault, searchSuffixDescription)
 	flag.StringVar(&searchSuffixFlag, "s", searchSuffixDefault, searchSuffixDescription)
 
+	var maxDepthFlag int
+	const (
+		maxDepthDefault     = 2
+		maxDepthDescription = "search max depth"
+	)
+	flag.IntVar(&maxDepthFlag, "max-depth", maxDepthDefault, maxDepthDescription)
+	flag.IntVar(&maxDepthFlag, "d", maxDepthDefault, maxDepthDescription)
+
 	var excludeSearchFlag arrayFlags
 	const (
 		excludeSearchDescription = "exclude from search list"
@@ -88,6 +96,9 @@ func main() {
 		}
 		if !info.IsDir() {
 			return nil
+		}
+		if strings.Count(path, string(os.PathSeparator)) > maxDepthFlag {
+			return fs.SkipDir
 		}
 		if _, err := os.Stat(path + "/.nosync"); !os.IsNotExist(err) {
 			return nil
