@@ -146,38 +146,41 @@ func main() {
 			HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
 			DisableTLS:   true, // Bitcoin core does not provide TLS by default
 		}
-		// Notice the notification parameter is nil since notifications are
-		// not supported in HTTP POST mode.
-		client, err := rpcclient.New(connCfg, nil)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		defer client.Shutdown()
 
-		// Get the current block count.
-		blockCount, err := client.GetBlockCount()
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		fmt.Printf("\"%s\" \"wallet.blocks[%s]\" \"%d\"\n", hostnameFlag, element["NAME"], blockCount)
-		blockhash, err := client.GetBlockHash(blockCount)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		block, err := client.GetBlockVerbose(blockhash)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		fmt.Printf("\"%s\" \"wallet.blocktime[%s]\" \"%d\"\n", hostnameFlag, element["NAME"], block.Time)
-		balance, err := client.GetBalance()
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		fmt.Printf("\"%s\" \"wallet.balance[%s]\" \"%f\"\n", hostnameFlag, element["NAME"], balance.ToBTC())
+		func() {
+			// Notice the notification parameter is nil since notifications are
+			// not supported in HTTP POST mode.
+			client, err := rpcclient.New(connCfg, nil)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			defer client.Shutdown()
+
+			// Get the current block count.
+			blockCount, err := client.GetBlockCount()
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			fmt.Printf("\"%s\" \"wallet.blocks[%s]\" \"%d\"\n", hostnameFlag, element["NAME"], blockCount)
+			blockhash, err := client.GetBlockHash(blockCount)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			block, err := client.GetBlockVerbose(blockhash)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			fmt.Printf("\"%s\" \"wallet.blocktime[%s]\" \"%d\"\n", hostnameFlag, element["NAME"], block.Time)
+			balance, err := client.GetBalance()
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			fmt.Printf("\"%s\" \"wallet.balance[%s]\" \"%f\"\n", hostnameFlag, element["NAME"], balance.ToBTC())
+		}()
 	}
 }
