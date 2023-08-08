@@ -97,6 +97,18 @@ func ReadPackageNames(fileName string) (lines []string, err error) {
 	return
 }
 
+func getPackages() []string {
+	if strings.HasPrefix(packageNames, "/") {
+		if _, err := os.Stat(packageNames); err != nil {
+			FatalErr(err, "Failed to read package file")
+		}
+		packages, err := ReadPackageNames(packageNames)
+		FatalErr(err, "Failed to read package file")
+		return packages
+	}
+	return strings.Split(packageNames, ",")
+}
+
 func main() {
 	flag.StringVar(&packageNames, "name", "", "comma separated list of package name to check")
 	flag.StringVar(&url, "url", "", "the base of the Debian distribution")
@@ -106,9 +118,14 @@ func main() {
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
-	if len(packageNames) == 0 || len(url) == 0 || len(suite) == 0 || len(component) == 0 {
+	if len(url) == 0 || len(suite) == 0 || len(component) == 0 {
 		flag.Usage()
 		os.Exit(1)
+	}
+	packages := getPackages()
+	if len(packages) == 0 {
+		fmt.Print("{}")
+		os.Exit(0)
 	}
 
 	resp, err := DownloadPackageList()
@@ -134,13 +151,6 @@ func main() {
 	paragraphs, err := godebiancontrol.Parse(reader)
 	FatalErr(err, "Failed to parse package list")
 
-	var packages []string
-	if _, err := os.Stat(packageNames); err == nil {
-		packages, err = ReadPackageNames(packageNames)
-		FatalErr(err, "Failed to read package file")
-	} else {
-		packages = strings.Split(packageNames, ",")
-	}
 	versions := make(map[string]packageVersion)
 	for _, pkg := range paragraphs {
 		packageName := pkg["Package"]
