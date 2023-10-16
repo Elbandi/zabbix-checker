@@ -98,8 +98,12 @@ class QueryPBS:
         for ds in sorted(datastore_usage, key=lambda x: x["store"]):
             if ds["store"] in self._args.exclude:
                 continue
-            group = self._pbs.admin.datastore(ds["store"]).groups.get()
-            groups[ds["store"]] = group
+            namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
+            for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                group = self._pbs.admin.datastore(ds["store"]).groups.get(ns = ns["ns"])
+                for g in group:
+                    g["ns"] = ns["ns"]
+                groups[ds["store"]] = group
 
         print(json.dumps(groups))
 
@@ -109,8 +113,12 @@ class QueryPBS:
         for ds in sorted(datastore_usage, key=lambda x: x["store"]):
             if ds["store"] in self._args.exclude:
                 continue
-            snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get()
-            snapshots[ds["store"]] = snapshot
+            namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
+            for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get(ns = ns["ns"])
+                for s in snapshot:
+                    s["ns"] = ns["ns"]
+                snapshots[ds["store"]] = snapshot
 
         print(json.dumps(snapshots))
 
