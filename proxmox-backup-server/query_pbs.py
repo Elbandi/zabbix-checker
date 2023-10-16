@@ -92,6 +92,11 @@ class QueryPBS:
     def _get_datastore_usage(self):
         return self._pbs.status("datastore-usage").get()
 
+    def _get_ns_name(self, store, namespace):
+        if len(namespace) > 0:
+            return store + '.' + namespace
+        return store + '._'
+
     def get_groups(self):
         datastore_usage = self._get_datastore_usage()
         groups = {}
@@ -100,6 +105,8 @@ class QueryPBS:
                 continue
             namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
             for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                if self._get_ns_name(ds["store"], ns["ns"]) in self._args.exclude:
+                    continue
                 group = self._pbs.admin.datastore(ds["store"]).groups.get(ns = ns["ns"])
                 for g in group:
                     g["ns"] = ns["ns"]
@@ -115,6 +122,8 @@ class QueryPBS:
                 continue
             namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
             for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                if self._get_ns_name(ds["store"], ns["ns"]) in self._args.exclude:
+                    continue
                 snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get(ns = ns["ns"])
                 for s in snapshot:
                     s["ns"] = ns["ns"]
