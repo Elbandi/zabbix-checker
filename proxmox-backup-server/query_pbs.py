@@ -92,14 +92,22 @@ class QueryPBS:
     def _get_datastore_usage(self):
         return self._pbs.status("datastore-usage").get()
 
+    def _get_group_name(self, store, ns):
+        if ns:
+            return store + "/" + ns
+        return store
+
     def get_groups(self):
         datastore_usage = self._get_datastore_usage()
         groups = {}
         for ds in sorted(datastore_usage, key=lambda x: x["store"]):
             if ds["store"] in self._args.exclude:
                 continue
-            group = self._pbs.admin.datastore(ds["store"]).groups.get()
-            groups[ds["store"]] = group
+            namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
+            for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                group = self._pbs.admin.datastore(ds["store"]).groups.get(ns=ns["ns"])
+                gname = self._get_group_name(ds["store"], ns["ns"])
+                groups[gname] = group
 
         print(json.dumps(groups))
 
@@ -109,8 +117,11 @@ class QueryPBS:
         for ds in sorted(datastore_usage, key=lambda x: x["store"]):
             if ds["store"] in self._args.exclude:
                 continue
-            snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get()
-            snapshots[ds["store"]] = snapshot
+            namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
+            for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get(ns=ns["ns"])
+                gname = self._get_group_name(ds["store"], ns["ns"])
+                snapshots[gname] = snapshot
 
         print(json.dumps(snapshots))
 
