@@ -97,6 +97,11 @@ class QueryPBS:
             return store + "/" + ns
         return store
 
+    def _get_filter_name(self, store, ns):
+        if ns:
+            return store + "/" + ns
+        return store + '/_'
+
     def get_groups(self):
         datastore_usage = self._get_datastore_usage()
         groups = {}
@@ -105,6 +110,8 @@ class QueryPBS:
                 continue
             namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
             for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                if self._get_filter_name(ds["store"], ns["ns"]) in self._args.exclude:
+                    continue
                 group = self._pbs.admin.datastore(ds["store"]).groups.get(ns=ns["ns"])
                 gname = self._get_group_name(ds["store"], ns["ns"])
                 groups[gname] = group
@@ -119,6 +126,8 @@ class QueryPBS:
                 continue
             namespaces = self._pbs.admin.datastore(ds["store"]).namespace.get()
             for ns in sorted(namespaces, key=lambda x: x["ns"]):
+                if self._get_filter_name(ds["store"], ns["ns"]) in self._args.exclude:
+                    continue
                 snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get(ns=ns["ns"])
                 gname = self._get_group_name(ds["store"], ns["ns"])
                 snapshots[gname] = snapshot
