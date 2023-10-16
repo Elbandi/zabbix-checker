@@ -129,6 +129,11 @@ class QueryPBS:
                 if self._get_filter_name(ds["store"], ns["ns"]) in self._args.exclude:
                     continue
                 snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get(ns=ns["ns"])
+                for s in snapshot:
+                    if "fingerprint" in s: del s["fingerprint"]
+                    if "files" in s: del s["files"]
+                    if "verification" in s and "upid" in s["verification"]:
+                        del s["verification"]["upid"]
                 gname = self._get_group_name(ds["store"], ns["ns"])
                 snapshots[gname] = snapshot
 
