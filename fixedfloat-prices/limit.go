@@ -42,13 +42,28 @@ var limitCommand = cli.Command{
 			},
 		},
 	},
-	Action: cmdLimit,
+	Action: func(ctx *cli.Context) error {
+		if ctx.IsSet("api-key") {
+			return cmdLimitApi(ctx)
+		}
+		return cmdLimitWeb(ctx)
+	},
 }
 
-func cmdLimit(ctx *cli.Context) error {
+func cmdLimitApi(ctx *cli.Context) error {
 	client := fixedfloat.NewWithCustomTimeout(ctx.String("api-key"), ctx.String("api-secret"), 10*time.Second)
 	client.SetDebug(ctx.Bool("debug"))
 	from, _, err := client.GetRate(ctx.String("from"), ctx.String("to"), ctx.Float64("amount"))
+	if err != nil {
+		return err
+	}
+	fmt.Print(from.Max)
+	return nil
+}
+
+func cmdLimitWeb(ctx *cli.Context) error {
+	debug = ctx.Bool("debug")
+	from, _, err := getRate(ctx.String("from"), ctx.String("to"), ctx.Float64("amount"))
 	if err != nil {
 		return err
 	}
