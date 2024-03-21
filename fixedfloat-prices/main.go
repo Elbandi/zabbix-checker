@@ -22,6 +22,11 @@ func main() {
 			&limitCommand,
 		},
 		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "debug",
+				Usage: "Debug http request/response",
+				Value: false,
+			},
 			&cli.StringFlag{
 				Name:    "api-key",
 				Usage:   "Api key for fixedfloat",

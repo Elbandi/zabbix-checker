@@ -29,6 +29,7 @@ var checkCommand = cli.Command{
 
 func cmdCheck(ctx *cli.Context) error {
 	client := fixedfloat.NewWithCustomTimeout(ctx.String("api-key"), ctx.String("api-secret"), 10*time.Second)
+	client.SetDebug(ctx.Bool("debug"))
 	currencies, err := client.GetCurrencies()
 	if err != nil {
 		return err

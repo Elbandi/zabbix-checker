@@ -47,6 +47,7 @@ var rateCommand = cli.Command{
 
 func cmdRate(ctx *cli.Context) error {
 	client := fixedfloat.NewWithCustomTimeout(ctx.String("api-key"), ctx.String("api-secret"), 10*time.Second)
+	client.SetDebug(ctx.Bool("debug"))
 	_, to, err := client.GetRate(ctx.String("from"), ctx.String("to"), ctx.Float64("amount"))
 	if err != nil {
 		return err
