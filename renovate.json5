@@ -1,0 +1,15 @@
+{
+  extends: [
+    'config:recommended',
+
+    'github>Elbandi/renovate-config:os-package(ubuntu_22_04)',
+    // Make sure we get a single PR combining all updates
+    'group:all',
+  ],
+
+  // Enable dependency dashboard
+  dependencyDashboard: true,
+
+  // Use our labelling system
+  labels: ['dependencies']
+}
