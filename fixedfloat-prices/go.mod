@@ -3,6 +3,7 @@ module fixedfloat-prices
 go 1.18
 
 require (
+	github.com/Elbandi/zabbix-checker v0.0.0-20241020141427-3b8ee9f52c1b
 	github.com/antchfx/htmlquery v1.3.0
 	github.com/elbandi/go-fixedfloat-api v0.0.0-20230626193626-6f74d130e9e8
 	github.com/urfave/cli/v2 v2.25.7
