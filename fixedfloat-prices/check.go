@@ -47,7 +47,7 @@ func cmdCheckApi(ctx *cli.Context) error {
 	client.SetDebug(ctx.Bool("debug"))
 	currencies, err := client.GetCurrencies()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not get currencies: %v\n", err)
 	}
 	coin := strings.ToUpper(ctx.String("coin"))
 	for _, c := range currencies {
@@ -63,12 +63,12 @@ func cmdCheckWeb(ctx *cli.Context) error {
 	debug = ctx.Bool("debug")
 	doc, err := fetchPage("https://ff.io/")
 	if err != nil {
-		return err
+		return fmt.Errorf("could not get ff.io start page: %v\n", err)
 	}
 	xpath := fmt.Sprintf("//select[@id='select_currency_%s']/option[@data-tag]", ctx.String("direction"))
 	currencies, err := htmlquery.QueryAll(doc, xpath)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not get expression from html: %v", err)
 	}
 	coin := strings.ToUpper(ctx.String("coin"))
 	for _, c := range currencies {
