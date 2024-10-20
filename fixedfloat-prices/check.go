@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/Elbandi/zabbix-checker/common/urfavecli"
 	"github.com/antchfx/htmlquery"
 	"github.com/elbandi/go-fixedfloat-api"
 	"github.com/urfave/cli/v2"
@@ -22,6 +23,14 @@ var checkCommand = cli.Command{
 					return cli.Exit("Flag coin cannot be empty", 1)
 				}
 				return nil
+			},
+		},
+		&cli.GenericFlag{
+			Name:  "direction",
+			Usage: "Exchange direction",
+			Value: &urfavecli.EnumValue{
+				Enum:    []string{"from", "to"},
+				Default: "from",
 			},
 		},
 	},
@@ -56,7 +65,8 @@ func cmdCheckWeb(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	currencies, err := htmlquery.QueryAll(doc, "//select[@id='select_currency_from']/option[@data-tag]")
+	xpath := fmt.Sprintf("//select[@id='select_currency_%s']/option[@data-tag]", ctx.String("direction"))
+	currencies, err := htmlquery.QueryAll(doc, xpath)
 	if err != nil {
 		return err
 	}
