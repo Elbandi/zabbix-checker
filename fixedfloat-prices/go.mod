@@ -7,7 +7,7 @@ require (
 	github.com/antchfx/htmlquery v1.3.0
 	github.com/elbandi/go-fixedfloat-api v0.0.0-20230626193626-6f74d130e9e8
 	github.com/urfave/cli/v2 v2.25.7
-	golang.org/x/net v0.22.0
+	golang.org/x/net v0.23.0
 )
 
 require (
