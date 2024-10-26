@@ -1,0 +1,8 @@
+github.com/Elbandi/go-ccminer-api v0.0.0-20180315184035-d0b733ebbc1b h1:sr7/V1DwLC7c/TasPnfTu84UDERx7cTx0mASYyZJlG8=
+github.com/Elbandi/go-ccminer-api v0.0.0-20180315184035-d0b733ebbc1b/go.mod h1:K+E0DXYoQ4Tb7mh+76VAHiu+d85OTJPyG2SgG/IwBHA=
+github.com/Elbandi/zabbix-checker v0.0.0-20241020142329-6e180550185b h1:71+KJtoHh2no2wsc1YZv4jl6MbnyisfpnutRLDea/0Y=
+github.com/Elbandi/zabbix-checker v0.0.0-20241020142329-6e180550185b/go.mod h1:zXzTodXPq8YI7VRVJ+c+PMXBByY4ED8L1vBgnm9XNvc=
+github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
+github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
+github.com/stefantalpalaru/pool v0.0.0-20180901001803-df8b849d2775 h1:LyCRS1bkQwbQDnQlhOwVZWcJXBE67vSqK2wxNEH2f3I=
+github.com/stefantalpalaru/pool v0.0.0-20180901001803-df8b849d2775/go.mod h1:7Bk4nFFchRNNwFNfck19mmbYHzIiW+EI/xMvub1pxPc=
