@@ -4,6 +4,7 @@ import json
 import re
 from enum import Enum
 from dotenv import dotenv_values
+from datetime import datetime
 import sys
 import os
 
@@ -131,6 +132,7 @@ class QueryPBS:
                     continue
                 snapshot = self._pbs.admin.datastore(ds["store"]).snapshots.get(ns=ns["ns"])
                 for s in snapshot:
+                    s["backup-time-str"] = datetime.utcfromtimestamp(s["backup-time"]).strftime('%Y-%m-%d %H:%M:%S')
                     if "fingerprint" in s: del s["fingerprint"]
                     if "files" in s: del s["files"]
                     if "verification" in s and "upid" in s["verification"]:
@@ -149,6 +151,7 @@ class QueryPBS:
     def get_tasks(self):
         tasks_list = self._pbs.nodes("localhost").tasks.get(limit=200)
         for t in tasks_list:
+            t["starttime_str"] = datetime.utcfromtimestamp(t["starttime"]).strftime('%Y-%m-%d %H:%M:%S')
             if "status" not in t:
                 t["status"] = "RUNNING"
         print(json.dumps(tasks_list))
