@@ -13,6 +13,7 @@ import proxmoxer
 class QueryPBS:
     def __init__(self):
         self._modes = {
+            "tasks": self.get_tasks,
             "datastores": self.get_datastores,
             "groups": self.get_groups,
             "snapshots": self.get_snapshots
@@ -144,6 +145,13 @@ class QueryPBS:
         for d in datastore_usage:
             del d['history']
         print(json.dumps(datastore_usage))
+
+    def get_tasks(self):
+        tasks_list = self._pbs.nodes("localhost").tasks.get(limit=200)
+        for t in tasks_list:
+            if "status" not in t:
+                t["status"] = "RUNNING"
+        print(json.dumps(tasks_list))
 
     def run(self):
         if self._args.mode not in self._modes:
