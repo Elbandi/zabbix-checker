@@ -114,9 +114,14 @@ class QueryPBS:
             for ns in sorted(namespaces, key=lambda x: x["ns"]):
                 if self._get_filter_name(ds["store"], ns["ns"]) in self._args.exclude:
                     continue
-                group = self._pbs.admin.datastore(ds["store"]).groups.get(ns=ns["ns"])
+                ds_groups = self._pbs.admin.datastore(ds["store"]).groups.get(ns=ns["ns"])
+                for group in ds_groups:
+                    params = {"backup-id": group["backup-id"], "backup-type": group["backup-type"]}
+                    full_comment = self._pbs.admin.datastore(ds["store"]).get("group-notes", **params)
+                    if full_comment:
+                        group["full-comment"] = full_comment
                 gname = self._get_group_name(ds["store"], ns["ns"])
-                groups[gname] = group
+                groups[gname] = ds_groups
 
         print(json.dumps(groups))
 
