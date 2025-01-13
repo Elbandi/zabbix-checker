@@ -2,12 +2,11 @@ module wallet-checker
 
 go 1.14
 
-replace github.com/btcsuite/btcd v0.22.0-beta => github.com/Elbandi/btcd v0.0.0-20220730110420-bf881181b045
+replace github.com/btcsuite/btcd v0.22.3 => github.com/Elbandi/btcd v0.0.0-20250113200320-3b6f47a226ff
 
 require (
-	github.com/Elbandi/zabbix-checker v0.0.0-20210310215054-15c6e3f801a8
-	github.com/btcsuite/btcd v0.22.0-beta
-	github.com/smartystreets/goconvey v1.6.4 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
-	gopkg.in/ini.v1 v1.62.0
+	github.com/Elbandi/zabbix-checker v0.0.0-20241219185337-e1f809219cb7
+	github.com/btcsuite/btcd v0.22.3
+	github.com/stretchr/testify v1.10.0 // indirect
+	gopkg.in/ini.v1 v1.67.0
 )
