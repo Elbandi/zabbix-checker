@@ -2,11 +2,11 @@ module wallet-balance-checker
 
 go 1.14
 
-replace github.com/btcsuite/btcd v0.21.0-beta => github.com/Elbandi/btcd v0.0.0-20211225141341-5cda86ed008a
+replace github.com/btcsuite/btcd v0.22.3 => github.com/Elbandi/btcd v0.0.0-20250113200320-3b6f47a226ff
 
 require (
-	github.com/btcsuite/btcd v0.21.0-beta
-	github.com/smartystreets/goconvey v1.6.4 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	gopkg.in/ini.v1 v1.62.0
+	github.com/btcsuite/btcd v0.22.3
+	github.com/stretchr/testify v1.7.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
+	gopkg.in/ini.v1 v1.67.0
 )
