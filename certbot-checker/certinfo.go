@@ -72,17 +72,22 @@ func cmdCertInfo(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		certPEM, err := os.ReadFile(filepath.Join(fullPath, "cert.pem"))
+		certPEM, err := os.ReadFile(filepath.Join(fullPath, "fullchain.pem"))
 		if err != nil {
 			return fmt.Errorf("failed to read certificate file: %w", err)
 		}
-		block, _ := pem.Decode(certPEM)
+		block, rest := pem.Decode(certPEM)
 		if block == nil {
 			return fmt.Errorf("failed to decode PEM block from file")
 		}
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			return fmt.Errorf("failed to parse certificate: %w", err)
+		}
+		rootPool := x509.NewCertPool()
+		ok := rootPool.AppendCertsFromPEM(rest)
+		if !ok {
+			return fmt.Errorf("couldn't add pems from fullchain")
 		}
 		var o LetsEncryptCert
 		o.Name = info.Name()
@@ -98,7 +103,7 @@ func cmdCertInfo(ctx *cli.Context) error {
 			AlternativeNames:   cert.DNSNames,
 		}
 		o.Result = getValidationResult(
-			cert, x509.VerifyOptions{},
+			cert, x509.VerifyOptions{DNSName: cert.DNSNames[0], Roots: rootPool},
 			cert.Subject.ToRDNSequence().String(), cert.Issuer.ToRDNSequence().String(),
 		)
 
