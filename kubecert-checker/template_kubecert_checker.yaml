@@ -1,0 +1,318 @@
+zabbix_export:
+  version: '6.0'
+  date: '2025-02-26T09:40:41Z'
+  groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: b293a27792c84b04b0bc5df8e872dc5a
+      template: 'Kubernetes certificate by Zabbix agent 2'
+      name: 'Kubernetes certificate by Zabbix agent 2'
+      description: |
+        The template to monitor kubernetes certificates by Zabbix agent 2 that works with external scripts.
+        
+        Template tooling version used: 0.41
+      groups:
+        - name: Templates/Applications
+      items:
+        - uuid: 59b46f1296ba4d048d68d48dfe39809e
+          name: 'Kubernetes Cert: Get'
+          key: kubernetes.cert.get
+          delay: 1d
+          history: 1d
+          trends: '0'
+          value_type: TEXT
+          tags:
+            - tag: component
+              value: raw
+      discovery_rules:
+        - uuid: d1c886a7a5854bc58030dc543f837a3a
+          name: 'Discover kubernetes certificates'
+          type: DEPENDENT
+          key: kubernetes.certificate.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: 5eb3ef76eb584209b1e64e09f19ba289
+              name: 'Cert [{#NAME}]: Subject alternative name'
+              type: DEPENDENT
+              key: 'cert.alternative_names[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              description: 'The subject alternative name extension allows identities to be bound to the subject of the certificate.  These identities may be included in addition to or in place of the identity in the subject field of the certificate.  Defined options include an Internet electronic mail address, a DNS name, an IP address, and a Uniform Resource Identifier (URI).'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.alternative_names
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: ceb152087d9845c6931fa235adbed06f
+              name: 'Cert [{#NAME}]: Issuer'
+              type: DEPENDENT
+              key: 'cert.issuer[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              description: 'The field identifies the entity that has signed and issued the certificate.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.issuer
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: b510f6d302364823bc9e6c7f69889316
+              name: 'Cert [{#NAME}]: Last validation status'
+              type: DEPENDENT
+              key: 'cert.message[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              description: 'Last check result message.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.result.message
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: e618e31064e54960b513f2cecaa3fc5b
+              name: 'Cert [{#NAME}]: Expires on'
+              type: DEPENDENT
+              key: 'cert.not_after[{#NAME}]'
+              delay: '0'
+              history: 7d
+              units: unixtime
+              description: 'The date on which the certificate validity period ends.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.not_after.timestamp
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+              trigger_prototypes:
+                - uuid: 7e5a6aa3f9a9450ba5bab3436fdf6fc4
+                  expression: '(last(/Kubernetes certificate by Zabbix agent 2/cert.not_after[{#NAME}]) - now()) / 86400 < {$KUBE.EXPIRY.WARN}'
+                  name: 'Cert [{#NAME}]: SSL certificate expires soon'
+                  event_name: 'Cert [{#NAME}]: SSL certificate expires soon (less than {$KUBE.EXPIRY.WARN} days)'
+                  priority: WARNING
+                  description: 'The SSL certificate should be updated or it will become untrusted.'
+                  dependencies:
+                    - name: 'Cert [{#NAME}]: SSL certificate is invalid'
+                      expression: 'find(/Kubernetes certificate by Zabbix agent 2/cert.validation[{#NAME}],,"like","invalid")=1'
+                  tags:
+                    - tag: scope
+                      value: notice
+            - uuid: 379d10d2256c4356842f84ad63ad2e11
+              name: 'Cert [{#NAME}]: Valid from'
+              type: DEPENDENT
+              key: 'cert.not_before[{#NAME}]'
+              delay: '0'
+              history: 7d
+              units: unixtime
+              description: 'The date on which the certificate validity period begins.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.not_before.timestamp
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: e6b2d43154d9410689019d5d3028cd61
+              name: 'Cert [{#NAME}]: Public key algorithm'
+              type: DEPENDENT
+              key: 'cert.public_key_algorithm[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: CHAR
+              description: 'The digital signature algorithm is used to verify the signature of a certificate.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.public_key_algorithm
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: fa17cb9cf0434241a2dac13f766a7a0e
+              name: 'Cert [{#NAME}]: Serial number'
+              type: DEPENDENT
+              key: 'cert.serial_number[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: CHAR
+              description: 'The serial number is a positive integer assigned by the CA to each certificate. It is unique for each certificate issued by a given CA. Non-conforming CAs may issue certificates with serial numbers that are negative or zero.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.serial_number
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: 60a668d86a0341dfb563a56b4727d5b2
+              name: 'Cert [{#NAME}]: Fingerprint'
+              type: DEPENDENT
+              key: 'cert.sha1_fingerprint[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: CHAR
+              description: 'The Certificate Signature (SHA1 Fingerprint or Thumbprint) is the hash of the entire certificate in DER form.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.sha1_fingerprint
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+              trigger_prototypes:
+                - uuid: 5b2d1f14ec1840acabc0f2a9e442a176
+                  expression: 'last(/Kubernetes certificate by Zabbix agent 2/cert.sha1_fingerprint[{#NAME}]) <> last(/Kubernetes certificate by Zabbix agent 2/cert.sha1_fingerprint[{#NAME}],#2)'
+                  name: 'Cert [{#NAME}]: Fingerprint has changed'
+                  event_name: 'Cert [{#NAME}]: Fingerprint has changed (new version: {ITEM.VALUE})'
+                  priority: INFO
+                  description: |
+                    The SSL certificate fingerprint has changed. If you did not update the certificate, it may mean your certificate has been hacked. Ack to close.
+                    There could be multiple valid certificates on some installations. In this case, the trigger will have a false positive. You can ignore it or disable the trigger.
+                  manual_close: 'YES'
+                  tags:
+                    - tag: scope
+                      value: notice
+            - uuid: f99e9052ed7d454ead7c68e94b375210
+              name: 'Cert [{#NAME}]: Signature algorithm'
+              type: DEPENDENT
+              key: 'cert.signature_algorithm[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: CHAR
+              description: 'The algorithm identifier for the algorithm used by the CA to sign the certificate.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.signature_algorithm
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: 4d063a8541b446888159ee0989ac66fd
+              name: 'Cert [{#NAME}]: Subject'
+              type: DEPENDENT
+              key: 'cert.subject[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              description: 'The field identifies the entity associated with the public key stored in the subject public key field.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.subject
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: 80b6eb3d8a0440358f93c5490876eca4
+              name: 'Cert [{#NAME}]: Validation result'
+              type: DEPENDENT
+              key: 'cert.validation[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: CHAR
+              description: 'The certificate validation result. Possible values: valid/invalid/valid-but-self-signed'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.result.value
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+              trigger_prototypes:
+                - uuid: 1b35100c04dd49fb9fe4ee746c7e82aa
+                  expression: 'find(/Kubernetes certificate by Zabbix agent 2/cert.validation[{#NAME}],,"like","invalid")=1'
+                  name: 'Cert [{#NAME}]: SSL certificate is invalid'
+                  priority: HIGH
+                  description: 'SSL certificate has expired or it is issued for another domain.'
+                  tags:
+                    - tag: scope
+                      value: security
+            - uuid: 3cd3b504db4248e88bc26e29b24d37dc
+              name: 'Cert [{#NAME}]: Version'
+              type: DEPENDENT
+              key: 'cert.version[{#NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: CHAR
+              description: 'The version of the encoded certificate.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.x509.version
+              master_item:
+                key: 'kubernetes.certificate.get[{#NAME}]'
+              tags:
+                - tag: component
+                  value: cert
+            - uuid: 8215445a399247b990edb04ade5d6c0e
+              name: 'Cert [{#NAME}]: Get'
+              type: DEPENDENT
+              key: 'kubernetes.certificate.get[{#NAME}]'
+              delay: '0'
+              history: '0'
+              trends: '0'
+              value_type: TEXT
+              description: 'Returns the JSON with attributes of a certificate of the specified domain.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.name == ''{#NAME}'')].first()'
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: kubernetes.cert.get
+              tags:
+                - tag: component
+                  value: raw
+          master_item:
+            key: kubernetes.cert.get
+          lld_macro_paths:
+            - lld_macro: '{#NAME}'
+              path: $.name
+      tags:
+        - tag: class
+          value: software
+        - tag: target
+          value: certificate
+      macros:
+        - macro: '{$KUBE.EXPIRY.WARN}'
+          value: '20'
+          description: 'Number of days until the certificate expires.'
