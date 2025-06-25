@@ -31,6 +31,15 @@ zabbix_export:
           type: DEPENDENT
           key: kubernetes.certificate.discovery
           delay: '0'
+          filter:
+            conditions:
+              - macro: '{#NAME}'
+                value: '{$KUBE.CERTS.NAME.MATCHES}'
+                formulaid: A
+              - macro: '{#NAME}'
+                value: '{$KUBE.CERTS.NAME.NOT_MATCHES}'
+                operator: NOT_MATCHES_REGEX
+                formulaid: B
           item_prototypes:
             - uuid: 5eb3ef76eb584209b1e64e09f19ba289
               name: 'Cert [{#NAME}]: Subject alternative name'
@@ -316,3 +325,9 @@ zabbix_export:
         - macro: '{$KUBE.EXPIRY.WARN}'
           value: '20'
           description: 'Number of days until the certificate expires.'
+        - macro: '{$KUBE.CERTS.NAME.MATCHES}'
+          value: '.*'
+          description: 'Filter in of kubernetes server certs by name'
+        - macro: '{$KUBE.CERTS.NAME.NOT_MATCHES}'
+          value: CHANGE_IF_NEEDED
+          description: 'Filter out of kubernetes server certs by name'
