@@ -32,14 +32,29 @@ zabbix_export:
           key: kubernetes.certificate.discovery
           delay: '0'
           filter:
+            evaltype: AND
             conditions:
+              - macro: '{#ISSUER}'
+                value: '{$KUBE.CERTS.ISSUER.MATCHES}'
+                formulaid: A
+              - macro: '{#ISSUER}'
+                value: '{$KUBE.CERTS.ISSUER.NOT_MATCHES}'
+                operator: NOT_MATCHES_REGEX
+                formulaid: B
               - macro: '{#NAME}'
                 value: '{$KUBE.CERTS.NAME.MATCHES}'
-                formulaid: A
+                formulaid: C
               - macro: '{#NAME}'
                 value: '{$KUBE.CERTS.NAME.NOT_MATCHES}'
                 operator: NOT_MATCHES_REGEX
-                formulaid: B
+                formulaid: D
+              - macro: '{#SUBJECT}'
+                value: '{$KUBE.CERTS.SUBJECT.MATCHES}'
+                formulaid: E
+              - macro: '{#SUBJECT}'
+                value: '{$KUBE.CERTS.SUBJECT.NOT_MATCHES}'
+                operator: NOT_MATCHES_REGEX
+                formulaid: F
           item_prototypes:
             - uuid: 5eb3ef76eb584209b1e64e09f19ba289
               name: 'Cert [{#NAME}]: Subject alternative name'
@@ -314,8 +329,12 @@ zabbix_export:
           master_item:
             key: kubernetes.cert.get
           lld_macro_paths:
+            - lld_macro: '{#ISSUER}'
+              path: $.issuer
             - lld_macro: '{#NAME}'
               path: $.name
+            - lld_macro: '{#SUBJECT}'
+              path: $.subject
       tags:
         - tag: class
           value: software
@@ -325,9 +344,21 @@ zabbix_export:
         - macro: '{$KUBE.EXPIRY.WARN}'
           value: '20'
           description: 'Number of days until the certificate expires.'
+        - macro: '{$KUBE.CERTS.ISSUER.MATCHES}'
+          value: '.*'
+          description: 'Filter of kubernetes certs by issuer'
+        - macro: '{$KUBE.CERTS.ISSUER.NOT_MATCHES}'
+          value: CHANGE_IF_NEEDED
+          description: 'Filter to exclude kubernetes certs by issuer'
         - macro: '{$KUBE.CERTS.NAME.MATCHES}'
           value: '.*'
-          description: 'Filter in of kubernetes server certs by name'
+          description: 'Filter of kubernetes certs by name'
         - macro: '{$KUBE.CERTS.NAME.NOT_MATCHES}'
           value: CHANGE_IF_NEEDED
-          description: 'Filter out of kubernetes server certs by name'
+          description: 'Filter to exclude kubernetes certs by name'
+        - macro: '{$KUBE.CERTS.SUBJECT.MATCHES}'
+          value: '.*'
+          description: 'Filter of kubernetes certs by subject'
+        - macro: '{$KUBE.CERTS.SUBJECT.NOT_MATCHES}'
+          value: CHANGE_IF_NEEDED
+          description: 'Filter to exclude kubernetes certs by subject'
