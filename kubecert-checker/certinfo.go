@@ -55,7 +55,7 @@ func cmdCertInfo(ctx *cli.Context) error {
 	}
 	rancherPath := ctx.Args().First()
 	ltsPath := filepath.Join(rancherPath, "server", "tls")
-	if stat, err := os.Stat(ltsPath); os.IsNotExist(err) || !stat.IsDir() {
+	if stat, err := os.Stat(ltsPath); (err != nil) || !stat.IsDir() {
 		return errors.New("invalid rancher path")
 	}
 	output := make([]KubernetesCert, 0)
