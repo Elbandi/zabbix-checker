@@ -59,7 +59,11 @@ func cmdCertInfo(ctx *cli.Context) error {
 		return errors.New("invalid rancher path")
 	}
 	output := make([]KubernetesCert, 0)
-	err := filepath.Walk(ltsPath, func(path string, info os.FileInfo, err error) error {
+	ltsPath, err := filepath.Abs(ltsPath)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for '%s': %w", ltsPath, err)
+	}
+	err = filepath.Walk(ltsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -96,7 +100,7 @@ func cmdCertInfo(ctx *cli.Context) error {
 			}
 		}
 		var o KubernetesCert
-		o.Name = info.Name()
+		o.Name = strings.TrimPrefix(fullPath, ltsPath+string(os.PathSeparator))
 		o.X509 = webcertificate.Cert{
 			Version:            cert.Version,
 			Serial:             fmt.Sprintf("%x", cert.SerialNumber.Bytes()),
