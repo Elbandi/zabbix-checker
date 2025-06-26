@@ -53,7 +53,7 @@ func cmdCertInfo(ctx *cli.Context) error {
 		return errors.New("missing letsencrypt path")
 	}
 	letsencryptPath := ctx.Args().First()
-	if stat, err := os.Stat(letsencryptPath); os.IsNotExist(err) || !stat.IsDir() {
+	if stat, err := os.Stat(letsencryptPath); (err != nil) || !stat.IsDir() {
 		return errors.New("invalid letsencrypt path")
 	}
 	output := make([]LetsEncryptCert, 0)
